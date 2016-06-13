@@ -1,6 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
 
+"""
+>>> c = Circle()
+>>> c.area
+3.141592653589793
+>>> c.radius
+1
+"""
+
 import math
 
 
@@ -16,6 +24,7 @@ class Circle(object):
 
     @radius.setter
     def radius(self, arg):
+        assert arg > 0, "radius must > 0"
         self.__r = arg
 
     @property
@@ -27,6 +36,6 @@ class Circle(object):
         return 2 * self.radius * math.pi
 
 if __name__ == "__main__":
-    c = Circle()
-    print(c.area)
+    import doctest
+    doctest.testmod()
 
