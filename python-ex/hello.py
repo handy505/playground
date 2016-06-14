@@ -7,6 +7,7 @@ import time
 import math
 import threading
 import myobj
+import mythread
 
 def add(arg1, arg2):
     return arg1 + arg2
@@ -77,8 +78,7 @@ def main():
 
     # object
     c = myobj.Circle()
-    #print("area = {0}".format(c.area))
-    print(c.area())
+    print("area = {0}".format(c.area))
 
     # thread
     thread1 = MyThread(1, "thread1", 1)
@@ -87,9 +87,16 @@ def main():
     thread1.start()
     thread2.start()
 
+    print("start join: {}".format(time.time()))
     thread1.join()
     thread2.join()
+    print("end join: {}".format(time.time()))
 
+
+    # thread2
+    ptask = mythread.PollingThread(3, "thread3", 3)
+    ptask.start()
+    ptask.join()
 
 if __name__ == "__main__":
     main()
