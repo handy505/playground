@@ -80,23 +80,28 @@ def main():
     c = myobj.Circle()
     print("area = {0}".format(c.area))
 
-    # thread
-    thread1 = MyThread(1, "thread1", 1)
-    thread2 = MyThread(2, "thread2", 2)
+    # thread - normal
+    thread1 = MyThread(1, "thread-1", 1)
+    thread2 = MyThread(2, "thread-2", 2)
 
     thread1.start()
     thread2.start()
 
-    print("start join: {}".format(time.time()))
+    print("start join: {0}".format(time.time()))
     thread1.join()
     thread2.join()
-    print("end join: {}".format(time.time()))
+    print("end join: {0}".format(time.time()))
 
+    # thread - external file
+    thread3 = mythread.ExternalFileThread(3, "thread-3")
+    thread3.start()
+    thread3.join()
 
-    # thread2
-    ptask = mythread.PollingThread(3, "thread3", 3)
-    ptask.start()
-    ptask.join()
+    # thread - mutex lock
+    for i in range(5):
+        t = mythread.MutexDemoThread(i)
+        t.start()
+
 
 if __name__ == "__main__":
     main()
