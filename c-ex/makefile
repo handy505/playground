@@ -12,4 +12,4 @@ myfunc.o : myfunc.c
 	gcc -c myfunc.c
 
 clean:
-	rm -rf main.o myfunc.o
+	rm -rf *.o
