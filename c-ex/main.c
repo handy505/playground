@@ -15,6 +15,7 @@ int main(void){
     // cross file function call
     int var2 = addition(3, 4);
     printf("external file function call: %d\n", var2);
+
     // timestamp
     // hardware access: mac address
     return 0;

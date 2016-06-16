@@ -1,12 +1,15 @@
 CC=gcc
-CFLAGS = -g -Wall -O0
-LDFLAGS = -lm
+CFLAGS = -g -Wall
+#LDFLAGS = -lm
 
-main : main.o myfunc.o
-	$(CC) $(LDFLAGS) -o $@ $^
-	
-main.o : main.c
-	$(CC) $(LDFLAGS) -o $@ $<
+main: main.o myfunc.o
+	gcc main.o myfunc.o -o main	
+
+main.o: main.c
+	gcc -c main.c
 
 myfunc.o : myfunc.c
-	$(CC) $(LDFLAGS) -o $@ $<
+	gcc -c myfunc.c
+
+clean:
+	rm -rf main.o myfunc.o
