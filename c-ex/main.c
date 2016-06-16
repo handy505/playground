@@ -5,6 +5,7 @@
 #include <sys/ioctl.h>
 #include <net/if.h>
 #include <unistd.h>
+#include <math.h>
 #include "myfunc.h"
 
 int add(int arg1, int arg2){
@@ -55,7 +56,21 @@ int main(void){
     printf("mac: %.2x:%.2x:%.2x:%.2x:%.2x:%.2x\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 
     // file
+    FILE *fp = fopen("abc.txt", "w");
+    fprintf(fp, "%s\n", "abcdef");
+    fclose(fp);
+
     // perfermence
+    clock_t t1, t2;
+    t1 = clock();
+    int i = 0;
+    float ans;
+    for(i=0; i<100000; i++){
+        ans = sqrt(2);
+    }
+    t2 = clock();
+    printf("ans: %f, ticks: %d\n", ans, t2-t1);
+
     // object
     // thread - normal
     // thread - external file
