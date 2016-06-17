@@ -9,6 +9,7 @@
 #include <pthread.h>
 #include "myfunc.h"
 #include "myobj.h"
+#include "mythread.h"
 
 
 int add(int arg1, int arg2){
@@ -94,8 +95,6 @@ int main(void){
 
     // thread - normal
     pthread_t tid;
-    //void* (*fnptr)(void*);
-    //fnptr = printTimeThread;
     int ret = pthread_create(&tid, NULL, printTimeThread, NULL);
     printf("pthread_create() return: %d\n", ret);
 
@@ -104,8 +103,13 @@ int main(void){
     ret = pthread_join(tid, &status);
     printf("pthread_join() return: %d\n", ret);
     */
-    pthread_exit(NULL);
+
     // thread - external file
+    pthread_t tid2;
+    ret = pthread_create(&tid2, NULL, externalFileThread, NULL);
+    printf("pthread_create() return: %d\n", ret);
+    
     // thread - mutex lock
+    pthread_exit(NULL);
     return 0;
 }
