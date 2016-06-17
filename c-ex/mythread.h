@@ -3,4 +3,8 @@
 
 void *externalFileThread(void *arg);
 
+void *mutexDemoThread(void * arg);
+
+void *mutexDemoThread2(void * arg);
+
 #endif

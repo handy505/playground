@@ -98,18 +98,26 @@ int main(void){
     int ret = pthread_create(&tid, NULL, printTimeThread, NULL);
     printf("pthread_create() return: %d\n", ret);
 
-    /*
     void *status;
     ret = pthread_join(tid, &status);
     printf("pthread_join() return: %d\n", ret);
-    */
 
     // thread - external file
     pthread_t tid2;
     ret = pthread_create(&tid2, NULL, externalFileThread, NULL);
     printf("pthread_create() return: %d\n", ret);
     
+    ret = pthread_join(tid2, &status);
+    printf("pthread_join() return: %d\n", ret);
+
     // thread - mutex lock
+    
+    pthread_t tid3, tid4;
+    pthread_create(&tid3, NULL, mutexDemoThread, NULL);
+    pthread_create(&tid4, NULL, mutexDemoThread2, NULL);
+    
+
+
     pthread_exit(NULL);
     return 0;
 }
