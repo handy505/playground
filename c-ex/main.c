@@ -7,6 +7,8 @@
 #include <unistd.h>
 #include <math.h>
 #include "myfunc.h"
+#include "myobj.h"
+
 
 int add(int arg1, int arg2){
     return arg1 + arg2;
@@ -72,6 +74,12 @@ int main(void){
     printf("ans: %f, ticks: %d\n", ans, t2-t1);
 
     // object
+    
+    struct Circle c;
+    newCircle(&c, 1.0);
+    printf("circle area: %f with radius: %f\n", c.area(&c), c.getRadius(&c));    
+    c.setRadius(&c, 2.0);
+    printf("circle area: %f with radius: %f\n", c.area(&c), c.getRadius(&c));
     // thread - normal
     // thread - external file
     // thread - mutex lock
