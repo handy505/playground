@@ -113,6 +113,8 @@ int main(void){
     // thread - mutex lock
     
     pthread_t tid3, tid4;
+
+    pthread_mutex_init(&mutex, NULL);
     pthread_create(&tid3, NULL, mutexDemoThread, NULL);
     pthread_create(&tid4, NULL, mutexDemoThread2, NULL);
     
