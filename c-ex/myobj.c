@@ -18,12 +18,10 @@ float getRadius(struct Circle *this){
 void newCircle(struct Circle *this, float r){
     this->new = newCircle;
     this->area = circleArea;
-
     this->setRadius = setRadius;
     this->getRadius = getRadius;
     //this->radius = r;
     setRadius(this, r);
-
 }
 
 

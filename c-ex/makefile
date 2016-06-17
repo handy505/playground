@@ -3,7 +3,7 @@ CFLAGS = -g -Wall
 #LDFLAGS = -lm
 
 main: main.o myfunc.o myobj.o
-	gcc main.o myfunc.o myobj.o -o main	
+	gcc main.o myfunc.o myobj.o -o main -lpthread
 
 main.o: main.c
 	gcc -c main.c
