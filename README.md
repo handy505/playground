@@ -5,7 +5,7 @@ demostrate the basic operation in c/python.
   - local file function call  
   - external file function call  
   - timestamp  
-  - file operstion  
+  - file operation  
   - perfermence measure  
   - object  
   - thread(normal/external file/mutex lock)  
