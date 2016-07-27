@@ -88,6 +88,13 @@ public class Main implements Runnable {
 			mutexThread2.join();
 		}catch(Exception e){ System.out.println(e.toString()); }
 
+
+
+		for(int i=0; i<5; i++){
+			Thread t = new Thread( new MutexDemoThread(i, this, num) );
+			t.start();
+		}
+
 	}
 
     public static void main(String[] args) {

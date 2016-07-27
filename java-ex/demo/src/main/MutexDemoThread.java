@@ -17,13 +17,17 @@ public class MutexDemoThread implements Runnable{
 	public void run(){
 		System.out.println("threadId: " + threadId + ", num: " + main.num);
 
-		for(int i=0; i<5; i++){
-			main.num += 1;
-			System.out.println("threadId: " + threadId + ", num: " + main.num);
+		synchronized(main.getLock()){
 		
-			try{ Thread.sleep(1000);}
-			catch(Exception e){ System.out.println(e.toString()); }
+				for(int i=0; i<5; i++){
+					main.num += 1;
+					System.out.println("threadId: " + threadId + ", num: " + main.num);
+				
+					try{ Thread.sleep(1000);}
+					catch(Exception e){ System.out.println(e.toString()); }
+				}
 		}
+
 
 	}
 }
