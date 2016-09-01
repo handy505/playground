@@ -1,3 +1,6 @@
 *.o
 *.pyc
 *.class
+/java/socketdemo/nbproject/private/
+/java/socketdemo/build/
+/java/socketdemo/dist/
