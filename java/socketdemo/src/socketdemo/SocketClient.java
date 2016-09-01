@@ -5,10 +5,10 @@ import java.net.Socket;
 import java.io.BufferedOutputStream;
  
 public class SocketClient {
-    private String address = "127.0.0.1";
-    private int port = 9527;
-    //private String address = "172.20.10.2";
-    //private int port = 8001;
+    //private String address = "127.0.0.1";
+    //private int port = 9527;
+    private String address = "172.20.10.2";
+    private int port = 8001;
     public SocketClient() {
  
         Socket client = new Socket();
@@ -44,14 +44,16 @@ public class SocketClient {
                 if( length > 0){
                     in.read(b, 0, length);
                     
-                    for(int i=0; i<b.length; i++){
+                    for(int i=0; i<length; i++){
                         data += (char)b[i];
+                        System.out.print(Integer.toHexString(b[i]&0xff ));
                     }
+                    System.out.print("\n");
                     
                     //data = new String(b, "UTF-8");
                     
-                    System.out.println("[client]length: " + length);
-                    System.out.println("[client]" + data);
+                    //System.out.println("[client]length: " + length);
+                    //System.out.println("[client]" + data);
                 }
                 
                 
