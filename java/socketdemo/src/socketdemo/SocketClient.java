@@ -15,6 +15,7 @@ public class SocketClient {
         InetSocketAddress isa = new InetSocketAddress(this.address, this.port);
         
         java.io.BufferedInputStream in;
+        java.io.BufferedOutputStream out;
         try {
             client.connect(isa, 10000);
             
@@ -26,9 +27,12 @@ public class SocketClient {
             out = null;*/
             
             in = new java.io.BufferedInputStream(client.getInputStream());
+            out = new java.io.BufferedOutputStream(client.getOutputStream());
             byte[] b = new byte[1024];
             
             int length;
+            
+            long last = System.currentTimeMillis();
             
             while(true){
                 
@@ -40,7 +44,6 @@ public class SocketClient {
                 }*/
                 
                 length = in.available();
-                
                 if( length > 0){
                     in.read(b, 0, length);
                     
@@ -58,15 +61,20 @@ public class SocketClient {
                 
                 
                 
-                
+                if(System.currentTimeMillis() - last > 1000){
+                    last = System.currentTimeMillis();
+                    out.write("handy".getBytes());
+                    out.flush();
 
+                }
+                    
                 
                 
                 //client.close();
                 //client = null;
                 
-                try{ Thread.sleep(100);}
-                catch(Exception e){ System.out.println(e.toString()); }
+                /*try{ Thread.sleep(100);}
+                catch(Exception e){ System.out.println(e.toString()); }*/
 
 
             }

@@ -25,7 +25,7 @@ public class SocketServer extends java.lang.Thread {
     public void run() {
         Socket socket;
         java.io.BufferedInputStream in;
- 
+        
         System.out.println("server start !");
         while (!OutServer) {
             socket = null;
@@ -36,7 +36,12 @@ public class SocketServer extends java.lang.Thread {
                 System.out.println("get connect: InetAddress = " + socket.getInetAddress());
                 // TimeOut
                 socket.setSoTimeout(15000);
- 
+                
+                
+                in = new java.io.BufferedInputStream(socket.getInputStream());
+                byte[] b = new byte[1024];
+                int length;
+                
                 /*
                 in = new java.io.BufferedInputStream(socket.getInputStream());
                 byte[] b = new byte[1024];
@@ -51,17 +56,54 @@ public class SocketServer extends java.lang.Thread {
                 in = null;*/
                 
                 BufferedOutputStream out = new BufferedOutputStream(socket.getOutputStream());
+                long last = System.currentTimeMillis();
                 while(true){
                     
-                    System.out.println("[server]send ts.");
-                    String ts = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(new Date());
-                    out.write(ts.getBytes());
-                    out.flush();
-                    //out.close();
-                    //out = null;
+                    if(System.currentTimeMillis() - last > 1000){
+                        last = System.currentTimeMillis();
+                        
+                        String ts = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(new Date());
+                        System.out.println("[server send] " + ts);
+                        out.write(ts.getBytes());
+                        out.flush();
+                        //out.close();
+                        //out = null;
+                        
+                    }
+                    
+                        
 
+                    
+                    
+                    String data = "";
+                    length = in.available();
+                    if( length > 0){
+                        in.read(b, 0, length);
+
+                        System.out.print("[server rcv] ");
+                        for(int i=0; i<length; i++){
+                            data += (char)b[i];
+                            System.out.print(Integer.toHexString(b[i]&0xff ));
+                        }
+                        System.out.print(" (" + data + ")\n");
+                        
+
+                        //data = new String(b, "UTF-8");
+
+                        //System.out.println("[client]length: " + length);
+                        //System.out.println("[client]" + data);
+                    }
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    /*
                     try{ Thread.sleep(1000);}
-                    catch(Exception e){ System.out.println(e.toString()); }
+                    catch(Exception e){ System.out.println(e.toString()); }*/
                 }
                 
                 
