@@ -1,4 +1,4 @@
-package socketdemo;
+package socket;
 
 import java.io.BufferedOutputStream;
 import java.net.ServerSocket;
@@ -58,7 +58,7 @@ public class SocketServer extends java.lang.Thread {
                 BufferedOutputStream out = new BufferedOutputStream(socket.getOutputStream());
                 long last = System.currentTimeMillis();
                 while(true){
-                    
+                    /*
                     if(System.currentTimeMillis() - last > 1000){
                         last = System.currentTimeMillis();
                         
@@ -69,7 +69,7 @@ public class SocketServer extends java.lang.Thread {
                         //out.close();
                         //out = null;
                         
-                    }
+                    }*/
                     
                         
 
@@ -89,9 +89,18 @@ public class SocketServer extends java.lang.Thread {
                         
 
                         //data = new String(b, "UTF-8");
-
                         //System.out.println("[client]length: " + length);
                         //System.out.println("[client]" + data);
+                        
+                        
+                        String ts = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(new Date());
+                        System.out.println("[server send] " + ts);
+                        out.write(ts.getBytes());
+                        out.flush();
+                        //out.close();
+                        //out = null;
+                        
+                        
                     }
                     
                     

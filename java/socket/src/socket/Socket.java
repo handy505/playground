@@ -1,6 +1,6 @@
-package socketdemo;
+package socket;
 
-public class Socketdemo {
+public class Socket {
 
     public static void main(String args[])
     {
