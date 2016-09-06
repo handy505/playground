@@ -70,28 +70,7 @@ if __name__ == '__main__':
         hour, min, sec = odd_hms(t3-t1)
         print("get off work: {}:{}:{}".format(hour, min, sec))
 
-        '''
-        if ((lc1.tm_year == lc2.tm_year) 
-        and (lc1.tm_mon == lc2.tm_mon)
-        and (lc1.tm_mday == lc2.tm_mday)):
-            print("the same day")
 
-            t2 = time.mktime(lc2)
-            t3 = t2 + (60*60*9)
-            lc3 = time.localtime(t3)
-            print("ts3-freedom: " + time.strftime('%Y-%m-%d %H:%M:%S', lc3) )
-
-            
-            print("ts1-current: " + time.strftime('%Y-%m-%d %H:%M:%S', lc1) )
-
-            hour, min, sec = odd_hms(t3-t1)
-            print("get off work: {}:{}:{}".format(hour, min, sec))
-
-        else:
-            print("a new day")
-            with open("arrived.log", "a") as f:
-                f.write( time.strftime('%Y-%m-%d %H:%M:%S', lc1) + "\n")
-        '''
 
 
     else: 

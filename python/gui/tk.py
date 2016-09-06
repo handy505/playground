@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import tkinter as tk
 
 
@@ -14,7 +15,7 @@ class Application(tk.Frame):
         self.btn1["text"] = "hello world]\n(click me)"
         self.btn1["command"] = self.say_hi
         self.btn1.pack(side="top")
-        
+
         self.btn2 = tk.Button(self, text="i'm handy", fg="orange", bg="White")
         self.btn2.pack(side="top")
 
@@ -29,7 +30,7 @@ class Application(tk.Frame):
         self.label2 = tk.Label(self, text="i'm label2").grid(row=1)
         self.e1 = tk.Entry(self).grid(row=0, column=1)
         self.e3 = tk.Entry(self).grid(row=0, column=2)
-        self.e2 = tk.Entry(self).grid(row=1, column=1, 
+        self.e2 = tk.Entry(self).grid(row=1, column=1,
                                       columnspan=2, sticky=tk.EW)
         self.label3 = tk.Label(self, text="i'm label3", relief=tk.SUNKEN)
         self.label3.grid(row=2, columnspan=2, sticky=tk.EW)
@@ -45,7 +46,3 @@ class Application(tk.Frame):
 root = tk.Tk()
 app = Application(master=root)
 app.mainloop()
-
-
-
-
