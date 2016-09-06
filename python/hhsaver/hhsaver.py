@@ -5,6 +5,7 @@ import time
 import os
 import os.path
 import math
+import gui
 
 def get_last_record(filename):
 
@@ -71,7 +72,7 @@ if __name__ == '__main__':
         print("get off work: {}:{}:{}".format(hour, min, sec))
 
 
-
+        gui.gui()
 
     else: 
         print('not arrived')
