@@ -7,7 +7,7 @@ def mainview():
 
     root = Tk()
     myButton = Button(root)
-    myImage = PhotoImage(file='cat.gif')
+    myImage = PhotoImage(file='/home/handy/democode/python/hhsaver/cat.gif')
     #myButton.image = myImage
     myButton.configure(image=myImage)
     myButton.pack()

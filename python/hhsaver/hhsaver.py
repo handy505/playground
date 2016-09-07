@@ -7,12 +7,14 @@ import os.path
 import math
 import gui
 
+LOGFILE = "/home/handy/democode/python/hhsaver/arrived.log"
+
 def get_last_record(filename):
 
     last_record = ""
 
     # check file is exist
-    if os.path.exists("/home/handy/democode/python/hhsaver/arrived.log"):
+    if os.path.exists(LOGFILE):
         #print("exist")
         with open(filename, "r") as f:
             for line in f:
@@ -46,7 +48,7 @@ if __name__ == '__main__':
 
         # last record timestamp
         try:
-            last_record = get_last_record("arrived.log")
+            last_record = get_last_record(LOGFILE)
             lc2 = time.strptime(last_record, '%Y-%m-%d %H:%M:%S')
             print("ts2-arrived: " + time.strftime('%Y-%m-%d %H:%M:%S', lc2) )            
         except ValueError:
