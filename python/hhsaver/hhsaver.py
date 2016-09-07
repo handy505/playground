@@ -40,9 +40,11 @@ if __name__ == '__main__':
     wlan0_get_ip = os.popen('/sbin/ifconfig | /bin/grep "inet addr"').read()
     if wlan0_get_ip != "":
 
+        # current timestamp
         t1 = round(time.time())
         lc1 = time.localtime(t1)
 
+        # last record timestamp
         try:
             last_record = get_last_record("arrived.log")
             lc2 = time.strptime(last_record, '%Y-%m-%d %H:%M:%S')
@@ -51,17 +53,14 @@ if __name__ == '__main__':
             print(ValueError)
             exit()
 
-
+        
         the_same_day = ((lc1.tm_year == lc2.tm_year) and (lc1.tm_mon == lc2.tm_mon) and (lc1.tm_mday == lc2.tm_mday)) 
         if not the_same_day:
             print("a new day")
             with open("arrived.log", "a") as f:
                 f.write( time.strftime('%Y-%m-%d %H:%M:%S', lc1) + "\n")
 
-
-
-        print("the same day")
-
+        # calculate timestamp
         t2 = time.mktime(lc2)
         t3 = t2 + (60*60*9)
         lc3 = time.localtime(t3)
@@ -71,8 +70,8 @@ if __name__ == '__main__':
         hour, min, sec = odd_hms(t3-t1)
         print("get off work: {}:{}:{}".format(hour, min, sec))
 
-
-        gui.gui()
+        if t1 > t3:
+            gui.mainview()
 
     else: 
         print('not arrived')
