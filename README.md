@@ -1,5 +1,5 @@
 # democode
-demostrate the basic operation in c/python.  
+demostrate the basic operation in c/python/java.  
 
 ## content: 
   - local file function call  
