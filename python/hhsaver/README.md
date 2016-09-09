@@ -6,6 +6,11 @@
 	* * * * * /usr/bin/python3 /home/handy/democode/python/hhsaver/hhsaver.py >> /home/handy/democode/python/hhsaver/debug
 	* * * * * /bin/date >> /home/handy/democode/python/hhsaver/datelog.txt
 
+## display gui on monitor: export DISPLAY=:0
+
+	* * * * * export DISPLAY=:0 && /usr/bin/python3 /home/handy/democode/python/hhsaver/hhsaver.py >> /home/handy/democode/python/hhsaver/debug
+	* * * * * /bin/date >> /home/handy/democode/python/hhsaver/datelog.txt
+
 
 
 
