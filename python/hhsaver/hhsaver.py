@@ -39,7 +39,8 @@ def odd_hms(seconds):
 
 if __name__ == '__main__':
     os.popen("export DISPLAY=:0")
-    wlan0_get_ip = os.popen('/sbin/ifconfig | /bin/grep "inet addr"').read()
+    #wlan0_get_ip = os.popen('/sbin/ifconfig | /bin/grep "inet addr"').read()
+    wlan0_get_ip = os.popen('/sbin/ifconfig | /bin/grep "hiPhone"').read()
     if wlan0_get_ip != "":
 
         # current timestamp
