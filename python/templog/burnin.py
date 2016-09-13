@@ -35,7 +35,7 @@ currentTemp = os.popen("vcgencmd measure_temp").read()
 print(currentTemp)
 
 lastRecord = get_last_record(LOGFILE)
-#print("last record: " + lastRecord)
+print("max: " + lastRecord)
 
 elem = lastRecord.split(",")
 #print("elem: " + str(elem))
