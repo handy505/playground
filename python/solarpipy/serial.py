@@ -25,7 +25,6 @@ class SerialTask(threading.Thread):
         print("{} end {}".format(self._sname, time.time()))
 
 if __name__ == "__main__":
-    # how to excute unittest via doctest
-    # python -m doctest filename.py -v
+    # python3 -m doctest filename.py -v
     import doctest
     doctest.testmod()

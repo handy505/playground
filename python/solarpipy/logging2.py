@@ -4,7 +4,10 @@
 import time
 import threading
 
-
+"""
+檔名不要取成 logging.py
+常用字會導致doctest發生錯誤
+"""
 class LoggingTask(threading.Thread):
     """
     紀錄，從pv inverter拿資料寫入檔案
@@ -30,7 +33,6 @@ class LoggingTask(threading.Thread):
         print("{} end {}".format(self._sname, time.time()))
 
 if __name__ == "__main__":
-    # how to excute unittest via doctest
-    # python -m doctest filename.py -v
+    # python3 -m doctest filename.py -v
     import doctest
     doctest.testmod()

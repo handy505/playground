@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
     強化後的PVInverter
     1) 基本對映到485彼端的實體機器參數(V/I/P)
@@ -40,7 +41,7 @@ class PVInverter(object):
         self._volt = self._tmp
 
 if __name__ == "__main__":
-    # python -m doctest pvinverter.py -v
+    # python3 -m doctest filename.py -v
     import doctest
     doctest.testmod()
     
