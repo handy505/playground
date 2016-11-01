@@ -14,6 +14,7 @@ class ATask(threading.Thread):
         #self.c2 = condition2
         self.packet1 = packet1
         #self.packet2 = packet2
+        self.tmp = 0
 
     def run(self):
         
@@ -22,9 +23,8 @@ class ATask(threading.Thread):
 
             self.c1.acquire()
 
-            ts = time.strftime('%H:%M:%S', time.localtime(round(time.time())))
-            tstr = "[a] {}, {}".format(ts, ip)
-            self.packet1 = tstr
+            self.tmp += 1
+            self.packet1.append(self.tmp)
             print(self.packet1)
 
             self.c1.notify_all()
@@ -57,8 +57,9 @@ class BTask(threading.Thread):
             print(self.packet1) #需修與字串參考指向不同實體的問題，才能做到thread同步
             if self.packet1:
                 print("[b] processing...{}".format(self.packet1))
-                time.sleep(1)        
-                self.packet1 = ""
+                time.sleep(1)     
+                for _ in self.packet1:   
+                    self.packet1.pop()
                 
             
 
@@ -76,7 +77,7 @@ if __name__ == "__main__":
     condition1 = threading.Condition()
     condition2 = threading.Condition()
 
-    packet1 = "iampacket1111"
+    packet1 = [0x01, 0x02, 0x03]
     packet2 = "2222222222222"
 
     tha = ATask(condition1, condition2, packet1, packet2)
