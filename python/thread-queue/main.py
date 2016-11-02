@@ -18,9 +18,9 @@ class ATask(threading.Thread):
         time.sleep(3)
         self.cmd = "ifconfig"
         self.request_queue.put(self.cmd)
-        print("[a] {}".format(self.cmd))
+        print("[a] put command: {}".format(self.cmd))
         r = self.response_queue.get()
-        print("[a] {}".format(r))
+        print("[a] get response: \n{}".format(r))
 
 
 class BTask(threading.Thread):
@@ -37,13 +37,13 @@ class BTask(threading.Thread):
             if not self.request_queue.empty() :
 
                 r = self.request_queue.get()
-                print("[b] get {}".format(r))
+                print("[b] get command: {}".format(r))
                 time.sleep(1) # simu process time
                 #rr = r+"-response"
                 rr = os.popen(r).read()
 
                 self.response_queue.put(rr)
-                print("[b] put {}".format(r))
+                print("[b] put response: {}".format(r))
 
             print("[b] do my job")
             time.sleep(2)
