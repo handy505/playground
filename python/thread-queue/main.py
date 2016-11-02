@@ -14,14 +14,14 @@ class ATask(threading.Thread):
         self.request_queue = request_queue
         self.response_queue = response_queue
         
-
     def run(self):
-        #time.sleep(3)
+        time.sleep(3)
         self.cmd = "ifconfig"
         self.request_queue.put(self.cmd)
         print("[a] {}".format(self.cmd))
         r = self.response_queue.get()
         print("[a] {}".format(r))
+
 
 class BTask(threading.Thread):
 
@@ -34,19 +34,20 @@ class BTask(threading.Thread):
 
         while True:
             
-            r = self.request_queue.get()
-            print("[b] get {}".format(r))
-            time.sleep(1) # simu process time
-            rr = r+"-response"
+            if not self.request_queue.empty() :
 
-            self.response_queue.put(rr)
-            print("[b] put {}".format(r))
+                r = self.request_queue.get()
+                print("[b] get {}".format(r))
+                time.sleep(1) # simu process time
+                #rr = r+"-response"
+                rr = os.popen(r).read()
 
+                self.response_queue.put(rr)
+                print("[b] put {}".format(r))
 
+            print("[b] do my job")
+            time.sleep(2)
             
-            
-
-
 
 if __name__ == "__main__":
 
