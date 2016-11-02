@@ -13,14 +13,22 @@ class ATask(threading.Thread):
         threading.Thread.__init__(self)
         self.request_queue = request_queue
         self.response_queue = response_queue
-        
+        self.cmd = ["ifconfig", "ls", "iwlist"]
     def run(self):
         time.sleep(3)
-        self.cmd = "ifconfig"
+        '''self.cmd = "ifconfig"
         self.request_queue.put(self.cmd)
         print("[a] put command: {}".format(self.cmd))
         r = self.response_queue.get()
         print("[a] get response: \n{}".format(r))
+        '''
+
+        for cmd in self.cmd:
+            self.request_queue.put(cmd)
+            print("[a] put command: {}".format(cmd))
+            r = self.response_queue.get()
+            print("[a] get response: \n{}".format(r))
+
 
 
 class BTask(threading.Thread):
