@@ -15,13 +15,11 @@
       </header>
 		
       <nav>
-		
          <ul>
             <li><a href="#">HTML Tutorial</a></li>
             <li><a href="#">CSS Tutorial</a></li>
             <li><a href="#">JavaScript Tutorial</a></li>
          </ul>
-			
       </nav>
 		
       <article>
@@ -35,12 +33,46 @@
       </aside>
       
       <figure align="left">
-        <img src="../static/img/icon.png" alt="TutorialPoint" width="728" height="90">
+        <!-- <img src="./img/icon.png" alt="TutorialPoint" width="728" height="90"> -->
       </figure>
       
+      <div>
+        GUI invoke backend function
+        <a href="BackEnd.function_name" id="link" data-bind="true">here</a>
+      </div>
+
+      <div>
+        <form action="BackEnd.form_function_name" id="form" data-bind="true">
+          GUI invoke backend function with parameter
+          <input type="text" id="form_input" name="name">
+          <input type="submit" value="Submit" id="form_submit">
+        </form>
+        <div id="d1"></div>
+      </div>
+
+      <p id="p1">Hello World!</p>
+
+      <div>
+        <button onclick="myFunction()">click me</button>  
+      </div>
+
       <footer>
          <p>Created by <a href="#">Tutorials Point</a></p>
       </footer>
 		
    </body>
+
+  <script>
+      /*setTimeout(function(){
+         //var r = BackEnd.say_hello_world("233333");
+         //alert(r);
+         
+         BackEnd.method();
+         
+      },3000)*/
+      function myFunction(){
+        BackEnd.javascript_function();
+      }
+
+  </script>   
 </html>

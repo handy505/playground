@@ -2,6 +2,8 @@ import os
 import htmlPy
 from PyQt4 import QtGui
 import PySide
+from back_end_codes.backendInterface import BackEnd
+
 
 # Initial confiurations
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -17,7 +19,7 @@ app.template_path = os.path.join(BASE_DIR, "templates/")
 
 app.web_app.setMinimumWidth(800)
 app.web_app.setMinimumHeight(480)
-app.window.setWindowIcon(PySide.QtGui.QIcon(BASE_DIR + "/static/img/icon.png"))
+app.window.setWindowIcon(PySide.QtGui.QIcon(BASE_DIR + "./img/icon.png"))
 
 app.template = ("index.html", {"username": "htmlPy_user"})
 # Binding of back-end functionalities with GUI
@@ -28,6 +30,10 @@ app.template = ("index.html", {"username": "htmlPy_user"})
 # Register back-end functionalities
 #app.bind(ClassName())
 
+be = BackEnd()
+be.app = app
+
+app.bind(be)
 
 # Instructions for running application
 if __name__ == "__main__":

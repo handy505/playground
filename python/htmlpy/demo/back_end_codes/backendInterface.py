@@ -38,7 +38,7 @@ class BackEnd(htmlPy.Object):
         print(d)
 
         jsonstr = json.dumps(d)
-        jscode = 'document.getElementById("p1").innerHTML="{val}";'.format(val=d["name"])
+        jscode = 'document.getElementById("d1").innerHTML="{val}";'.format(val=d["name"])
         print(jscode)
         self.app.evaluate_javascript(jscode)
         return json.dumps(d)
