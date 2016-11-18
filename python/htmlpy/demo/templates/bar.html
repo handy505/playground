@@ -1,100 +1,29 @@
-<!DOCTYPE html>
-
+<!doctype html>
 <html>
 
-   <head>
-      <meta charset="utf-8">
-      <title>...</title>
-      <script src="Chart.bundle.js"></script>
-      <script src="utils.js"></script>
-      <style>
-      canvas {
-          -moz-user-select: none;
-          -webkit-user-select: none;
-          -ms-user-select: none;
-      }
-      </style>      
-   </head>
-	
-   <body>
-	
-      <header role="banner">
-         <h1>HTML5 Document Structure Example</h1>
-         <p>This page should be tried in safari, chrome or Mozila.</p>
-      </header>
-		
-      <nav>
-         <ul>
-            <li><a href="#">HTML Tutorial</a></li>
-            <li><a href="#">CSS Tutorial</a></li>
-            <li><a href="#">JavaScript Tutorial</a></li>
-         </ul>
-      </nav>
-		
-      <article>
-         <section>
-            <p>Once article can have multiple sections</p>
-         </section>
-      </article>
-		
-      <aside>
-         <p>This is  aside part of the web page</p>
-      </aside>
-      
-      <figure align="left">
-        <!-- <img src="./img/icon.png" alt="TutorialPoint" width="728" height="90"> -->
-      </figure>
-      
-      <div>
-        GUI invoke backend function
-        <a href="BackEnd.function_name" id="link" data-bind="true">here</a>
-      </div>
+<head>
+    <title>Bar Chart</title>
+    <script src="Chart.bundle.js"></script>
+    <script src="utils.js"></script>
+    <style>
+    canvas {
+        -moz-user-select: none;
+        -webkit-user-select: none;
+        -ms-user-select: none;
+    }
+    </style>
+</head>
 
-      <div>
-        <form action="BackEnd.form_function_name" id="form" data-bind="true">
-          GUI invoke backend function with parameter
-          <input type="text" id="form_input" name="name">
-          <input type="submit" value="Submit" id="form_submit">
-        </form>
-        <div id="d1"></div>
-      </div>
-
-      <p id="p1">Hello World!</p>
-
-      <div>
-        <button onclick="myFunction()">click me</button>  
-      </div>
-
-      <div id="container" style="width: 75%;">
-          <canvas id="canvas"></canvas>
-      </div>
-      <button id="randomizeData">Randomize Data</button>
-      <button id="addDataset">Add Dataset</button>
-      <button id="removeDataset">Remove Dataset</button>
-      <button id="addData">Add Data</button>
-      <button id="removeData">Remove Data</button>
-
-
-      <footer>
-         <p>Created by <a href="#">Tutorials Point</a></p>
-      </footer>
-		
-   </body>
-
-  <script>
-      /*setTimeout(function(){
-         //var r = BackEnd.say_hello_world("233333");
-         //alert(r);
-         
-         BackEnd.method();
-         
-      },3000)*/
-      function myFunction(){
-        BackEnd.javascript_function();
-      }
-
-
-
+<body>
+    <div id="container" style="width: 75%;">
+        <canvas id="canvas"></canvas>
+    </div>
+    <button id="randomizeData">Randomize Data</button>
+    <button id="addDataset">Add Dataset</button>
+    <button id="removeDataset">Remove Dataset</button>
+    <button id="addData">Add Data</button>
+    <button id="removeData">Remove Data</button>
+    <script>
         var MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
         var color = Chart.helpers.color;
         var barChartData = {
@@ -208,27 +137,8 @@
             });
 
             window.myBar.update();
-        });      
-
-  </script>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        });
+    </script>
+</body>
 
 </html>
