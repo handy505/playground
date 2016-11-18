@@ -23,6 +23,8 @@ class BackEnd(htmlPy.Object):
         # NOTE: @htmlPy.Slot decorater needs argument and return data-types.
         # Refer to API documentation.
         print("function name")
+        s = "{}, {}".format(self.app.width, self.app.height)
+        print(s)
         return
 
     @htmlPy.Slot(str, result=str)
