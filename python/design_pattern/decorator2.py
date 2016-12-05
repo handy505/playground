@@ -4,7 +4,7 @@ class Machine(object):
     def __init__(self):
         self.output_power = 0
 
-class UnitAdapter(object):
+class UnitDecorate(object):
     def __init__(self, machine):
         self.machine = machine
         self._output_power = None
@@ -24,8 +24,8 @@ if __name__ == '__main__':
     m.output_power = 1234
     print(m.output_power)
 
-    am = UnitAdapter(m)
-    print(am.output_power)
+    m = UnitDecorate(m)
+    print(m.output_power)
     
 
 '''output 
