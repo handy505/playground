@@ -36,21 +36,6 @@ class MainWindow(QMainWindow):
          
         self.wgHome, self.dcHome = self.createHomePage()
 
-
-        '''# home page
-        self.wgHome = QWidget(self)
-        gridLayout = QGridLayout(self.wgHome)
-        gridLayout.addWidget(QLabel('Home'), 0, 0, 1, 0)
-
-        gridLayout.addWidget(QLabel('Tx'), 1, 0)
-        self.lbtx = QLabel('tx data')
-        self.lbtx.setMinimumWidth(400)
-        gridLayout.addWidget(self.lbtx, 1, 1)
-
-        gridLayout.addWidget(QLabel('Rx'), 2, 0)
-        self.lbrx = QLabel('rx data')
-        gridLayout.addWidget(self.lbrx, 2, 1)'''
-
         
         # serial page
         self.wgSerial = QWidget(self)
@@ -162,27 +147,76 @@ class MainWindow(QMainWindow):
 
 
     def createHomePage(self):
+        WIDTH_LEFT = 3
+        WIDTH_RIGHT = 7
         dc = dict()
-        wgHome = QWidget(self)
-        gridLayout = QGridLayout(wgHome)
-        gridLayout.addWidget(QLabel('Home'), 0, 0, 1, 0)
+        wg = QWidget(self)
+        gridLayout = QGridLayout(wg)
 
-        gridLayout.addWidget(QLabel('Tx'), 1, 0)
+        row = 0
+        gridLayout.addWidget(QLabel('Home'), row, 0)
+
+        row = 1
+        gridLayout.addWidget(QLabel('Tx'), row, 0, 1, WIDTH_LEFT)
         lbtx = QLabel('tx data')
         lbtx.setMinimumWidth(400)
-        dc['pvtx'] = lbtx
-        gridLayout.addWidget(lbtx, 1, 1)
+        dc['pvtx_label'] = lbtx
+        gridLayout.addWidget(lbtx, row, 1, 1, WIDTH_RIGHT)
 
-        gridLayout.addWidget(QLabel('Rx'), 2, 0)
+        row = 2
+        gridLayout.addWidget(QLabel('Rx'), row, 0, 1, WIDTH_LEFT)
         lbrx = QLabel('rx data')
-        dc['pvrx'] = lbrx
-        gridLayout.addWidget(lbrx, 2, 1)
+        dc['pvrx_label'] = lbrx
+        gridLayout.addWidget(lbrx, row, 1, 1, WIDTH_RIGHT)
 
-        return wgHome, dc
+        row = 3
+        gridLayout.addWidget(QLabel('Serial485'), row, 0, 1, WIDTH_LEFT)
+        ser_label = QLabel('serial 485')
+        dc['ser_label'] = ser_label
+        gridLayout.addWidget(ser_label, row, 1, 1, WIDTH_RIGHT)
+
+        row = 4
+        gridLayout.addWidget(QLabel('Log'), row, 0, 1, WIDTH_LEFT)
+        elogging_label = QLabel('event logging')
+        dc['elogging_label'] = elogging_label
+        gridLayout.addWidget(elogging_label, row+0, 1, 1, WIDTH_RIGHT)
+
+        mlogging_label = QLabel('minute logging')
+        dc['mlogging_label'] = mlogging_label
+        gridLayout.addWidget(mlogging_label, row+1, 1, 1, WIDTH_RIGHT)
+
+        hlogging_label = QLabel('hour logging')
+        dc['hlogging_label'] = hlogging_label
+        gridLayout.addWidget(hlogging_label, row+2, 1, 1, WIDTH_RIGHT)
+
+        row = 7
+        gridLayout.addWidget(QLabel('Upload'), row, 0, 1, WIDTH_LEFT)
+        eupload_label = QLabel('event uploading')
+        dc['eupload_label'] = eupload_label
+        gridLayout.addWidget(eupload_label, row+0, 1, 1, WIDTH_RIGHT)
+
+        mupload_label = QLabel('minute uploading')
+        dc['mupload_label'] = mupload_label
+        gridLayout.addWidget(mupload_label, row+1, 1, 1, WIDTH_RIGHT)
+        
+        hupload_label = QLabel('hour uploading')
+        dc['hupload_label'] = hupload_label
+        gridLayout.addWidget(hupload_label, row+2, 1, 1, WIDTH_RIGHT)
+        
+        row = 10
+        gridLayout.addWidget(QLabel('Main'), row, 0, 1, WIDTH_LEFT)
+        mainthread_label = QLabel('main thread')
+        dc['mainthread_label'] = mainthread_label
+        gridLayout.addWidget(mainthread_label, row+0, 1, 1, WIDTH_RIGHT)
+
+
+
+        return wg, dc
 
 
     def debug(self):
-        self.dcHome['pvtx'].setText(str(time.time()))
+        self.dcHome['pvtx_label'].setText(str(time.time()))
+        
         
 
     def switchLeftWidget(self):
