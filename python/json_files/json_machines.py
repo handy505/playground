@@ -15,6 +15,9 @@ class MachineConfiguration(object):
         #self.current = 50
         self.port = port
 
+    def __repr__(self):
+        return str(self.__dict__)
+
 
 class SystemConfiguration(object):
     def __init__(self):
@@ -22,6 +25,8 @@ class SystemConfiguration(object):
         self.wifi_ssid = 'unknow_ssid'
         self.wifi_password = 'unknow_password'
 
+    def __repr__(self):
+        return str(self.__dict__)
     
         
 
@@ -39,27 +44,18 @@ def  object2dict(obj):
     #convert object to a dict
     dsc = {}
     dms = []
-    for i, m in enumerate(obj.mlist):
-        '''dm = {}
-        dm.update(m.__dict__)
-        k = 'machine-{}'.format(m.id)
-        dms[k] = m.__dict__'''
-
-        
+    for i, m in enumerate(obj.mlist):        
         dms.append(m.__dict__)
-        dsc['machines'] = dms
 
-    #dsc['machines'] = dms
-    
+    dsc['machines'] = dms
     dsc['wifi_ssid'] = obj.wifi_ssid
     dsc['wifi_password'] = obj.wifi_password
-    
 
     return  dsc
 
 
  
-def  dict2object(d):
+'''def  dict2object(d):
     #convert dict to object
     if '__class__'  in  d:
         class_name =  d.pop( '__class__' )
@@ -70,47 +66,55 @@ def  dict2object(d):
         inst =  class_ ( **args) #create new instance
     else :
         inst =  d
-    return  inst
+    return  inst'''
+
+
+def  dict2object(d):
+    sc = SystemConfiguration()
+     
+    for dmc in d['machines']:
+        mc = MachineConfiguration()
+        mc.id = dmc['id']
+        mc.port = dmc['port']
+        sc.mlist.append(mc)
+    
+    sc.wifi_ssid = d['wifi_ssid']
+    sc.wifi_password = d['wifi_password'] 
+    
+    return sc
 
 
 
 if __name__ == "__main__":
     
     sc = SystemConfiguration()
-    for i in range(1,6):
+    for i in range(1,3):
         mc = MachineConfiguration(i, '/dev/ttyUSB0')
         sc.mlist.append(mc)
+    sc.wifi_ssid = 'handyssid'
+    sc.wifi_password = '1234567890'
 
 
-    #d = object2dict(sc)
-
-
-    #print('{}'.format(d))
-
-    jsonstr = json.dumps(sc, sort_keys=True, indent=4, default=object2dict)
+    jsonstr = json.dumps(sc, sort_keys=True, default=object2dict, indent=4)
     print(jsonstr)
-    #print(repr(mg.__dict__))
+    with open('configurations.json', 'w', encoding='utf-8') as fw:
+        fw.write(jsonstr)
 
-
-
-    '''jsonstr = json.dumps(mg.__dict__, sort_keys=True, indent=2)
-    print(jsonstr)
-
-    jsonstr = json.dumps(m.__dict__, sort_keys=True)
-    print(jsonstr)'''
-
-
-    '''# dictionary to json string
-    d = collections.OrderedDict()
-    d["id"] = m.id
-    d["voltage"] = m.voltage
-    d["current"] = m.current
-    jsonstr = json.dumps(d)
-    print(jsonstr)'''
 
     # json string to dictionary
-    sc2 = json.loads(jsonstr)
-    print('sc2: {}, {}'.format(sc2['wifi_password'], sc2['wifi_ssid']))
+
+    s = ''
+    with open('configurations.json', 'r', encoding='utf-8') as fr:
+        s = fr.read()
+
+
+    d2 = json.loads(s)
+
+    sc = dict2object(d2)
+    print(sc)
+
+
+
 
 
 
