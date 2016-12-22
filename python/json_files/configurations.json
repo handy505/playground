@@ -7,6 +7,10 @@
         {
             "id": 2,
             "port": "/dev/ttyUSB0"
+        },
+        {
+            "id": 3,
+            "port": "/dev/ttyUSB0"
         }
     ],
     "wifi_password": "1234567890",
