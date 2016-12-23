@@ -14,8 +14,13 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
     last = time.time()
     while True:
 
-        while time.time() - last > 1:
+        '''while time.time() - last > 1:
             last = time.time()
             s.sendall(b'hello')
             data = s.recv(1024)
-            print('Received', repr(data))
+            print('Received', repr(data))'''
+
+        while time.time() - last > 1:
+            data = s.recv(1024)
+            print(repr(data))
+            last = time.time()
