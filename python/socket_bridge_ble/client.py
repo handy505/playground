@@ -15,7 +15,11 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as so:
 
 
         data = so.recv(1024)
-        s = data.decode('utf-8')
-        
-        #print(repr(data))
-        print(s)
+        if data:
+            s = data.decode('utf-8')
+            print('\t' + s)
+
+            s = 'response data'
+            bs = bytearray(s.encode('utf-8'))
+            so.sendall(bs)
+            print(s)
