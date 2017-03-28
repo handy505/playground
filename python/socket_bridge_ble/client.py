@@ -7,7 +7,8 @@ import time
 import os
 
 HOST = 'localhost'
-PORT = 12345
+#PORT = 12345
+PORT = 8001
 
 try:
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as so:
