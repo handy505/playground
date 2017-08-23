@@ -10,13 +10,11 @@ import collections
 
 
 class LogModle(object):
-    ''' Record collections '''
 
     def __init__(self, filepath):
         self.dc = collections.OrderedDict()
         self.uploading_key = 0
         self.incomming_key = 0
-
 
         with open(filepath, "r", encoding="utf-8") as fr:
             for line in fr.readlines():
@@ -27,13 +25,17 @@ class LogModle(object):
                 value = line
                 self.dc[key] = value
 
+        '''
         for k in self.dc.keys():
             self.uploading_key = k
-            break
+            break'''
 
-        for k in self.dc.keys():
-            self.incomming_key = k
+        '''for k in self.dc.keys():
+            self.incomming_key = k'''
 
+        keylist = list(self.dc.keys())
+        self.uploading_key = keylist[0]
+        self.incomming_key = keylist[-1]
 
 
 
