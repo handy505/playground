@@ -1,6 +1,5 @@
 #/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
 import os
 import re
 import sys
@@ -9,79 +8,58 @@ import threading
 import collections
 
 
-class LogModle(object):
-
+class UidDatabase(object):
     def __init__(self, filepath):
         self.dc = collections.OrderedDict()
-        self.uploading_key = 0
-        self.incomming_key = 0
-
-        with open(filepath, "r", encoding="utf-8") as fr:
-            for line in fr.readlines():
-                line = line.strip("\n")
-
-                fields = line.split(',')
-                key = fields[0]
-                value = line
-                self.dc[key] = value
-
-        '''
-        for k in self.dc.keys():
-            self.uploading_key = k
-            break'''
-
-        '''for k in self.dc.keys():
-            self.incomming_key = k'''
-
+        self.read_from(filepath)
         keylist = list(self.dc.keys())
-        self.uploading_key = keylist[0]
-        self.incomming_key = keylist[-1]
+        self.processing_key = int(keylist[0])
+        self.incomming_key = int(keylist[-1])
+        self.changed = False
 
 
+    def append_record(self, rec):
+        value = rec.strip('\n')
+        key = int(value.split(',')[0])
+        self.dc[key] = value 
+        self.incomming_key = key
+        self.changed = True
 
-class Recorder(threading.Thread): 
 
-    def __init__(self, mipp=None, mopp=None, mfpp=None):
-        threading.Thread.__init__(self)
-
-        self.name = 'recorder' 
-        self.looping = True
-
-        self.minute_input_pipeline = mipp
-        self.minute_output_pipeline = mopp
-        self.minute_feedback_pipeline = mfpp
+    def get_record_step_ahead(self):
+        keylist = list(self.dc.keys()) 
+        if self.processing_key in keylist:
+            rec = self.dc.get(self.processing_key)
+            self.processing_key += 1
+            return rec
+        else:
+            return None  
         
-        self.mm = LogModle()
-        self.mm.load(MINUTE_FILEPATH, MINUTE_FILTER_PATTERN)
 
-    def run(self):
+    def delete_record(self, uuid):
+        keylist = list(self.dc.keys()) 
+        if uuid in keylist:
+            del self.dc[uuid]
+            self.changed = True
+            
 
-        while self.looping:
+    def read_from(self, filepath):
+        with open(filepath, 'r', encoding='utf-8') as fr:
+            for line in fr.readlines():
+                value = line.strip('\n')
+                key = int(value.split(',')[0])
+                self.dc[key] = value
+        self.sync_time = time.time()
+        self.changed = False
 
-            # MINUTE database input/output/feedback process
-            while not self.minute_input_pipeline.empty():
-                s = self.minute_input_pipeline.get()
-                self.mm.append(s)
 
-            # output records
-            if self.minute_output_pipeline.empty():
-                while ( self.mm.ruidx < len(self.mm.rlist) 
-                and self.minute_output_pipeline.qsize() < 30):
-                    r = self.mm.get_record(self.mm.ruidx)
-                    self.minute_output_pipeline.put(r)
-                    self.mm.ruidx += 1
+    def write_to(self, filepath):
+        lines = []
+        for r in list(self.dc.values()):
+            lines.append('{}\n'.format(r))
+        with open(filepath, 'w', encoding='utf-8') as fw:
+            fw.writelines(lines)
+        self.sync_time = time.time()
+        self.changed = False
 
-            # remove uploaded records from feedback pipeline
-            while not self.minute_feedback_pipeline.empty():
-                uid = self.minute_feedback_pipeline.get()
-                self.mm.remove(uid)
-
-            # synchronize log file
-            if (time.time() - self.mm.timestamp > 60
-            and self.mm.changed_count > 0):
-                self.mm.zip_records()
-                self.mm.save(MINUTE_FILEPATH)
-
-            time.sleep(3)
-        
 
