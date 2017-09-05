@@ -13,10 +13,8 @@
 import sys
 import time
 import platform
-     
-import PySide
-     
-from PySide.QtCore import QRect
+import random
+from PySide.QtCore import *
 from PySide.QtGui import *
      
 __version__ = '3.1.5'
@@ -30,46 +28,80 @@ class MainWindow(QMainWindow):
         #self.setWindowFlags(PySide.QtCore.Qt.FramelessWindowHint)
 
         # home tabpage         
-        self.wgHome = QWidget(self)
-        gridLayout = QGridLayout(self.wgHome)
+        self.homePage = QWidget(self)
         self.label1 = QLabel('main page')
-        gridLayout.addWidget(self.label1, 0, 0)
-        self.lednum1 = QLCDNumber(numDigits=3)
-        self.lednum1.display(12)
-        gridLayout.addWidget(self.lednum1, 1, 0)
+        self.lednum1 = QLCDNumber(numDigits=10)
+        self.lednum1.setSegmentStyle(QLCDNumber.Flat)
+        #self.lednum1.display(123)
+        self.lednum1.display('Solar')
+        self.lednum1.resize(100, 100)
+        self.incButton = QPushButton('Inc')
+        self.decButton = QPushButton('Dec')
+        self.rndButton = QPushButton('Random')
+
+
+        hbox0 = QHBoxLayout()
+        hbox0.addWidget(self.label1)
+        hbox0.addWidget(self.lednum1)
+
+        hbox1 = QHBoxLayout()
+        hbox1.addStretch(1)
+        hbox1.addWidget(self.incButton)
+        hbox1.addWidget(self.decButton)
+        hbox1.addWidget(self.rndButton)
+
+        vbox = QVBoxLayout(self.homePage)
+        vbox.addStretch(1)
+        vbox.addLayout(hbox0)
+        vbox.addLayout(hbox1)
+
+        self.homePage.setLayout(vbox)
+    
 
         
         # serial tabpage
-        self.wgSerial = QWidget(self)
-        gridLayout = QGridLayout(self.wgSerial)
-        self.lb1 = QLabel('serial page')
-        self.lb2 = QLabel('label 2')
-        self.lb3 = QLabel('label 3')
-        gridLayout.addWidget(self.lb1, 0, 0)
-        gridLayout.addWidget(self.lb2, 1, 0)
-        gridLayout.addWidget(self.lb3, 2, 0)
+        self.machinePage = QWidget(self)
+        grid = QGridLayout(self.machinePage)
+        grid.addWidget(QLabel('Alarm'), 0, 0, Qt.AlignRight)
+        grid.addWidget(QLabel('Error'), 0, 2, Qt.AlignRight)
+        grid.addWidget(QLabel('Output Power(KW)'), 1, 0, Qt.AlignRight)
+        grid.addWidget(QLabel('Total Output Power(KWH)'), 1, 2, Qt.AlignRight)
+
+        for r in range(0, 7):
+            num = QLCDNumber(numDigits=6)
+            grid.addWidget(num, r, 1)
         
+        for r in range(0, 6):
+            num = QLCDNumber(numDigits=6)
+            grid.addWidget(num, r, 3)
 
         # stacked widget
-        self.sw = QStackedWidget(self)
-        self.sw.addWidget(self.wgHome)
-        self.sw.addWidget(self.wgSerial)
-        self.setCentralWidget(self.sw)
+        self.stack = QStackedWidget(self)
+        self.stack.addWidget(self.homePage)
+        self.stack.addWidget(self.machinePage)
+        self.setCentralWidget(self.stack)
         
         
+
+        self.incButton.clicked.connect(
+            lambda: self.lednum1.display(self.lednum1.value() + 1))
+        self.decButton.clicked.connect(
+            lambda: self.lednum1.display(self.lednum1.value() - 1))
+        self.rndButton.clicked.connect(
+            lambda: self.lednum1.display(random.randint(0,100)))
 
         actionHome = QAction(self)
         actionHome.setIcon(QIcon("icon/Home-50.png"))
         actionHome.triggered.connect(
-            lambda: self.sw.setCurrentWidget(self.wgHome))
+            lambda: self.stack.setCurrentWidget(self.homePage))
 
         actionSerial = QAction(self)
         actionSerial.setIcon(QIcon("icon/Unicast-50.png"))
         actionSerial.triggered.connect(
-            lambda: self.sw.setCurrentWidget(self.wgSerial))
+            lambda: self.stack.setCurrentWidget(self.machinePage))
 
         iconToolBar = self.addToolBar("iconBar.png")
-        iconToolBar.setIconSize(PySide.QtCore.QSize(60, 60))
+        iconToolBar.setIconSize(QSize(80, 60))
         iconToolBar.addAction(actionHome)
         iconToolBar.addAction(actionSerial)
 
