@@ -12,17 +12,12 @@ df2 = pd.DataFrame(data=d2)
 df3 = pd.DataFrame(data=d3)
 df1 = df1.drop_duplicates()
 df2 = df2.drop_duplicates()
-print(df1)
-print(df2)
-print(df3)
 
 df = pd.merge(df1, df2, on='dates')
-print(df)
 df = pd.merge(df, df3, on='dates')
 print(df)
 
-df = df.T
+df = df.rename(columns={'dates':'time', 'output_x':'m1'})
+df = df.rename(columns={'time','m1','m2','m3'})
 print(df)
-for d in df.iterrows():
-    print(d)
 
