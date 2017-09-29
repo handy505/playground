@@ -17,7 +17,6 @@ df = pd.merge(df1, df2, on='dates')
 df = pd.merge(df, df3, on='dates')
 print(df)
 
-df = df.rename(columns={'dates':'time', 'output_x':'m1'})
-df = df.rename(columns={'time','m1','m2','m3'})
-print(df)
+for i in df.drop('dates', axis=1):
+    print(df[i])
 
