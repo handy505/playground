@@ -5,17 +5,8 @@ import threading
 import random
 import serial
 
-'''
-1511251248.110596
-b'aa\n'
-1511251248.2116175
-1511251253.217781
-b"hello i'm handy, and fuck the ablerex\n"
-1511251253.3183892
-'''
 
 class MainThread(threading.Thread):
-
     def __init__(self):
         threading.Thread.__init__(self)
 
@@ -27,10 +18,11 @@ class MainThread(threading.Thread):
             time.sleep(1)
             n = ser.in_waiting
             if n:
-                print(time.time())
+                t0 = time.time()
                 p = self.receiving_until_timeout(ser, 0.1)
+                t1 = time.time()
                 print('{}'.format(p))
-                print(time.time())
+                print('{} -> {}, {}'.format(t0, t1, t1-t0))
 
 
     def receiving_until_timeout(self, sp, timeout):
@@ -43,7 +35,6 @@ class MainThread(threading.Thread):
         return sp.read(sp.in_waiting)
 
         
-
 def main():
     m = MainThread()
     m.start()
