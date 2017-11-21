@@ -5,6 +5,15 @@ import threading
 import random
 import serial
 
+'''
+1511251248.110596
+b'aa\n'
+1511251248.2116175
+1511251253.217781
+b"hello i'm handy, and fuck the ablerex\n"
+1511251253.3183892
+'''
+
 class MainThread(threading.Thread):
 
     def __init__(self):
@@ -25,8 +34,8 @@ class MainThread(threading.Thread):
 
 
     def receiving_until_timeout(self, sp, timeout):
-        rtime = time.time()
         num = sp.in_waiting
+        rtime = time.time()
         while time.time() - rtime < timeout:
             if sp.in_waiting != num:
                 num = sp.in_waiting
@@ -41,3 +50,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
