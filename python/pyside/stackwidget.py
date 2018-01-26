@@ -137,6 +137,7 @@ class DemoWindow(QMainWindow):
         system_time_label = QLabel('system time')
         watchdog_label = QLabel('watchdog')
         version_label = QLabel('version')
+        version_label.setStyleSheet('QLabel {background-color : red; color : blue;}')
 
         leftvbox = QVBoxLayout()
         leftvbox.addWidget(tx_label)
