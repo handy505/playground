@@ -25,6 +25,10 @@ def main():
     print(c.fetchone())
     print(c.fetchone())
 
+    c.execute("SELECT time('now')")
+    print(c.fetchone())
+    c.execute("SELECT time('now', 'localtime')")
+    print(c.fetchone())
 
 if __name__ == '__main__':
     main()
