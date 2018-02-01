@@ -39,11 +39,12 @@ class DemoWindow(QMainWindow):
         workAction.triggered.connect(lambda: self.stack.setCurrentWidget(self.workPage))
 
         confAction = QAction(self)
-        confAction.setIcon(QIcon("icon/Settings-50.png"))
+        #confAction.setIcon(QIcon("icon/Settings-50.png"))
+        confAction.setIconText('Setting')
         confAction.triggered.connect(lambda: self.stack.setCurrentWidget(self.confPage))
 
         iconToolBar = self.addToolBar('title')
-        iconToolBar.setIconSize(QSize(80, 60))
+        iconToolBar.setIconSize(QSize(50, 50))
         iconToolBar.addAction(homeAction)
         iconToolBar.addAction(nodeAction)
         iconToolBar.addAction(workAction)
@@ -52,11 +53,10 @@ class DemoWindow(QMainWindow):
     def _initConfPage(self):
         conf_edit = QTextEdit('here is a demo configuration string')
         conf_edit.setReadOnly(True)
-        """with open('./data/config.txt', 'r', encoding='utf-8') as fr:
-            conf_edit.setText(fr.read())
-            """
+        conf_edit2 = QTextEdit('here is a demo configuration string2')
         vbox = QVBoxLayout()
         vbox.addWidget(conf_edit)
+        vbox.addWidget(conf_edit2)
 
         result = QWidget(self)
         result.setLayout(vbox)
