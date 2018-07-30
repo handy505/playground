@@ -5,16 +5,39 @@ import queue
 import sqlite3
 import random
 import queue
+import sys
 
-class Record(object):
-    def __init__(self, mid, timestamp, v1, v2):
+class InverterRecord(object):
+    def __init__(self, mid, timestamp, kw, kwh):
         self.mid = mid
         self.timestamp = timestamp
-        self.v1 = v1
-        self.v2 = v2
+        self.kw = kw 
+        self.kwh = kwh
+
     def __str__(self):
-        ts=time.strftime('%Y/%m/%d %H:%M:%S', time.localtime(self.timestamp))
-        return '{},{},{},{}'.format(self.mid, ts, self.v1, self.v2)
+        ts = time.strftime('%Y/%m/%d %H:%M:%S', time.localtime(self.timestamp))
+        return '{},{},{},{}'.format(self.mid, ts, self.kw, self.kwh)
+
+
+class PVInverter(object):
+    def __init__(self, mid):
+        self.mid = mid
+        self.alarm_code = 0
+        self.error_code = 0
+        self.kw = 0
+        self.kwh = 0
+       
+    def __str__(self):
+        return 'Inverter-{}, {:>7.3f} kw, {:>7.3f} kwh'.format(self.mid, round(self.kw,3), round(self.kwh,3))
+
+    def sync_with_hardware(self):
+        time.sleep(random.randint(50,200)/1000)
+        self.kw = (random.randint(0,1000)/1000)
+        self.kwh += self.kw
+
+    def make_record(self):
+        return InverterRecord(self.mid, time.time(), round(self.kw,3), round(self.kwh,3))
+
 
 
 class Collector(threading.Thread):
@@ -22,16 +45,54 @@ class Collector(threading.Thread):
         threading.Thread.__init__(self)       
         self.oqueue = oqueue
 
+
     def run(self):
+
+        #pv1 = PVInverter(1)
+        #pv2 = PVInverter(2)
+
+        pvgroup = [PVInverter(i) for i in range(1,3)]
+
+
+        [print(pv) for pv in pvgroup]
+
+
+
+
+
+        ltime = time.localtime()
         while True:
-            v1 = random.randint(100, 200)
-            v2 = random.randint(1000, 5000)
-            r = Record(1, time.time(), v1, v2)
-            print('C: {}'.format(r))
-            self.oqueue.put(r)
+
+            for pv in pvgroup:
+                pv.sync_with_hardware()
+                print(pv)
+
+            '''pv1.sync_with_hardware()
+            print(pv1)
+            pv2.sync_with_hardware()
+            print(pv2)
+            '''
+
+            if time.localtime().tm_min != ltime.tm_min:
+                ltime = time.localtime()
+                print('New minute: {}'.format(ltime.tm_min))
+
+                '''r = pv1.make_record()
+                print('Get new records: {}'.format(r))
+                self.oqueue.put(r)
+
+                r = pv2.make_record()
+                print('Get new records: {}'.format(r))
+                self.oqueue.put(r)
+                '''
+
+                for pv in pvgroup:
+                    r = pv.make_record()
+                    print('Get new records: {}'.format(r))
+                    self.oqueue.put(r)
+
+
             time.sleep(1)
-
-
 
 
 
@@ -43,8 +104,19 @@ class RecorderDB(threading.Thread):
         self.oqueue = oqueue
         self.fbqueue = fbqueue
 
+        self.commit_timestamp = time.time()
 
     def run(self):
+        '''
+        tables:
+            event
+            measure
+            measure_hourly
+            illu
+            illu_hourly
+            temp
+            temp_hourly
+        '''
         self.dbconn = sqlite3.connect('data.db')
         c = self.dbconn.cursor()
         sql = ''' 
@@ -59,34 +131,57 @@ class RecorderDB(threading.Thread):
         '''
         c.execute(sql)
 
+        minutely_localtime = time.localtime()
+        hourly_localtime = time.localtime()
+
         while True:
-            while not self.iqueue.empty():
-                rec = self.iqueue.get()
-                print('R: {}, iqueue size: {}'.format(rec, self.iqueue.qsize()))
-
-                c = self.dbconn.cursor()
-                c.execute( "INSERT INTO measure VALUES (NULL, ?, datetime('now', 'localtime'), ?, ?, 0)",
-                    (rec.mid, rec.v1, rec.v2))
-                self.dbconn.commit()
 
 
-            time.sleep(2)
+            if time.localtime().tm_min != minutely_localtime.tm_min:
+                # every minute
+                self.minutely_operation()
+                minutely_localtime = time.localtime()
 
-    def run_old(self):
-        #conn = sqlite3.connect('data.db')
-        #while True:
-        if self.dbconn:
-            ts = time.time()
-            watt = random.randint(100, 200)
-            kwh = random.randint(1000, 5000)
-            print('collector {}, {}, {}'.format(time.time(), watt, kwh))
 
-            c = conn.cursor()
-            c.execute( "INSERT INTO measure VALUES (NULL, datetime('now', 'localtime'), ?, ?)",
-                (watt, kwh))
-            conn.commit()
+            if time.localtime().tm_hour != hourly_localtime.tm_hour:
+                # every hour
+                self.hourly_operation()
+                hourly_localtime = time.localtime()
 
-            time.sleep(1)
+
+            time.sleep(3)
+
+
+    def minutely_operation(self):
+        recs = []
+        while not self.iqueue.empty():
+            rec = self.iqueue.get()
+            recs.append(rec)
+
+
+
+
+        start  = time.time()
+        for rec in recs:
+            c = self.dbconn.cursor()
+            '''c.execute( "INSERT INTO measure VALUES (NULL, ?, datetime('now', 'localtime'), ?, ?, 0)", 
+                (rec.mid, rec.v1, rec.v2))
+                '''
+            c.execute( "INSERT INTO measure VALUES (NULL, ?, datetime(?, 'unixepoch', 'localtime'), ?, ?, 0)", 
+                (rec.mid, rec.timestamp, rec.kw, rec.kwh))
+        print('Insert database: {} seconds'.format(round((time.time()-start),6)))
+
+        if time.time() - self.commit_timestamp > (60*10):
+            start = time.time()
+            self.dbconn.commit()
+            print('Commit database: {} seconds'.format(round((time.time()-start),6)))
+            self.commit_timestamp = time.time()
+
+
+    def hourly_operation(self):
+        print('hour_operation()')
+        pass
+
 
 
 class Uploader(threading.Thread):
@@ -97,7 +192,7 @@ class Uploader(threading.Thread):
 
     def run(self):
         while True:
-            print('U: {}'.format(time.time()))
+            #print('U: {}'.format(time.time()))
             time.sleep(1)
 
 
