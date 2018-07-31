@@ -47,17 +47,9 @@ class Collector(threading.Thread):
 
 
     def run(self):
-
-        #pv1 = PVInverter(1)
-        #pv2 = PVInverter(2)
-
+    
         pvgroup = [PVInverter(i) for i in range(1,3)]
-
-
         [print(pv) for pv in pvgroup]
-
-
-
 
 
         ltime = time.localtime()
@@ -67,24 +59,10 @@ class Collector(threading.Thread):
                 pv.sync_with_hardware()
                 print(pv)
 
-            '''pv1.sync_with_hardware()
-            print(pv1)
-            pv2.sync_with_hardware()
-            print(pv2)
-            '''
 
             if time.localtime().tm_min != ltime.tm_min:
                 ltime = time.localtime()
                 print('New minute: {}'.format(ltime.tm_min))
-
-                '''r = pv1.make_record()
-                print('Get new records: {}'.format(r))
-                self.oqueue.put(r)
-
-                r = pv2.make_record()
-                print('Get new records: {}'.format(r))
-                self.oqueue.put(r)
-                '''
 
                 for pv in pvgroup:
                     r = pv.make_record()
