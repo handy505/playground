@@ -31,26 +31,42 @@ class RecorderDB(threading.Thread):
         '''
         self.dbconn = sqlite3.connect('data.db')
         c = self.dbconn.cursor()
+
+
         sql = ''' 
-        CREATE TABLE IF NOT EXISTS measure (
-            UID         INTEGER PRIMARY KEY AUTOINCREMENT,
-            MID         INTEGER NOT NULL,
-            DATETIME    TEXT NOT NULL,
-            KW          REAL NOT NULL,
-            KWH         REAL NOT NULL,
-            UPLOADED    INTERGER NOT NULL DEFAULT 0
+        CREATE TABLE IF NOT EXISTS event(
+            uid         INTEGER PRIMARY KEY AUTOINCREMENT,
+            mid         INTEGER NOT NULL,
+            datetime    TEXT NOT NULL,
+            older       INTEGER NOT NULL,
+            newer       INTEGER NOT NULL,
+            uploaded    INTERGER NOT NULL DEFAULT 0
         );
         '''
         c.execute(sql)
 
+
+        sql = ''' 
+        CREATE TABLE IF NOT EXISTS measure (
+            uid         INTEGER PRIMARY KEY AUTOINCREMENT,
+            mid         INTEGER NOT NULL,
+            datetime    TEXT NOT NULL,
+            kw          REAL NOT NULL,
+            kwh         REAL NOT NULL,
+            uploaded    INTERGER NOT NULL DEFAULT 0
+        );
+        '''
+        c.execute(sql)
+
+
         sql = ''' 
         CREATE TABLE IF NOT EXISTS measurehour (
-            UID         INTEGER PRIMARY KEY AUTOINCREMENT,
-            MID         INTEGER NOT NULL,
-            DATETIME    TEXT NOT NULL,
-            KW          REAL NOT NULL,
-            KWH         REAL NOT NULL,
-            UPLOADED    INTERGER NOT NULL DEFAULT 0
+            uid         INTEGER PRIMARY KEY AUTOINCREMENT,
+            mid         INTEGER NOT NULL,
+            datetime    TEXT NOT NULL,
+            kw          REAL NOT NULL,
+            kwh         REAL NOT NULL,
+            uploaded    INTERGER NOT NULL DEFAULT 0
         );
         '''
         c.execute(sql)
@@ -84,9 +100,6 @@ class RecorderDB(threading.Thread):
         start  = time.time()
         for rec in recs:
             c = self.dbconn.cursor()
-            '''c.execute( "INSERT INTO measure VALUES (NULL, ?, datetime('now', 'localtime'), ?, ?, 0)", 
-                (rec.mid, rec.v1, rec.v2))
-                '''
             c.execute( "INSERT INTO measure VALUES (NULL, ?, datetime(?, 'unixepoch', 'localtime'), ?, ?, 0)", 
                 (rec.mid, rec.timestamp, rec.kw, rec.kwh))
         print('Insert database: {} seconds'.format(round((time.time()-start),6)))
@@ -100,14 +113,58 @@ class RecorderDB(threading.Thread):
 
     def hourly_operation(self):
         print('hour_operation()')
+        lt = time.localtime()
+        print('localtime: {}'.format(lt))
+
+
+        c = self.dbconn.cursor()
+        #starttimestring = '{}-{}-{} {}:00:00'.format(lt.tm_year, lt.mon, lt.tm_mday, lt.tm_hour)
+        #endtimestring = '{}-{}-{} {}:59:59'.format(lt.tm_year, lt.mon, lt.tm_mday, lt.tm_hour)
+        starttimestring = '2018-08-01 09:00:00'
+        endtimestring = '2018-08-01 09:59:59'
+        sql = "select avg(kw), avg(kw) from measure where datetime between '?' and '?' and mid == ?" 
+        c.excute(sql,(starttimestring, endtimestring, str(1)))
+
+        print(c.fetchone())
+
+
         pass
 
 
 
 
 
-def main():
-    pass
 
 if __name__ == '__main__':
-    main()
+
+    dbconn = sqlite3.connect('data.db')
+
+    c = dbconn.cursor()
+
+
+
+    # get how many machine id in database
+    sql = "select distinct mid from measure"
+    c.execute(sql)
+    rows = c.fetchall()
+    machines = [r[0] for r in rows]
+    print(machines)
+
+
+
+
+    # calculate houely values
+    lt = time.localtime()
+    starttimestring = '{:0=4}-{:0=2}-{:0=2} {:0=2}:00:00'.format(lt.tm_year, lt.tm_mon, lt.tm_mday, 9)
+    endtimestring   = '{:0=4}-{:0=2}-{:0=2} {:0=2}:59:59'.format(lt.tm_year, lt.tm_mon, lt.tm_mday, 9)
+    print(starttimestring)
+    print(endtimestring)
+    sql = "select avg(kw), avg(kw) from measure where datetime between ? and ? and mid == ?" 
+    c.execute(sql,(starttimestring, endtimestring, '1'))
+    r = c.fetchone()
+    print(r)
+
+
+
+
+

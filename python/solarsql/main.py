@@ -21,11 +21,57 @@ class InverterRecord(object):
         return '{},{},{},{}'.format(self.mid, ts, self.kw, self.kwh)
 
 
+
+
+class InverterMeasurement(object):
+    pass
+
+class InverterAlarmEvent(object):
+    def __init__(self, mid, timestamp, older_code, newer_code):
+        self.mid = mid
+        self.timestamp = timestamp
+        self.older_code = older_code 
+        self.newer_code = newer_code 
+
+    def __str__(self):
+        ts = time.strftime('%Y/%m/%d %H:%M:%S', time.localtime(self.timestamp))
+        return '{},{},{:>8},{:>8}'.format(self.mid, ts, bin(self.older_code), bin(self.newer_code))
+
+    def infomations(self):
+        results = []
+        for shift in range(0, 8):
+            mask = 0x01 << shift
+            newerbit = self.newer_code & mask
+            olderbit = self.older_code & mask
+            if olderbit != newerbit:
+                ts = time.strftime('%Y/%m/%d %H:%M:%S', time.localtime(self.timestamp))
+                stat = 'H' if newerbit else 'R'
+                s = '{},{},1,{},{}'.format(self.mid, ts, shift, stat)
+                results.append(s)
+        return results
+
+
+
+
+
+
+
+class InverterErrorEvent(object):
+    pass
+class InverterOnlineEvent(object):
+    pass
+class InverterOfflineEvent(object):
+    pass
+
+
+
+
 class PVInverter(object):
     def __init__(self, mid):
         self.mid = mid
         self.alarm_code = 0
         self.error_code = 0
+        self.events = []
         self.kw = 0
         self.kwh = 0
        
@@ -34,6 +80,15 @@ class PVInverter(object):
 
     def sync_with_hardware(self):
         time.sleep(random.randint(50,200)/1000)
+
+        # event
+        current_code = random.randint(0,16)
+        if current_code != self.alarm_code:
+            aevent = InverterAlarmEvent(self.mid, time.time(), self.alarm_code, current_code)
+            self.events.append(aevent)
+            self.alarm_code = current_code
+                
+        # measurement
         self.kw = (random.randint(0,1000)/1000)
         self.kwh += self.kw
 
@@ -60,6 +115,8 @@ class Collector(threading.Thread):
             for pv in pvgroup:
                 pv.sync_with_hardware()
                 print(pv)
+
+                pv.events.clear()
 
 
             if time.localtime().tm_min != ltime.tm_min:
@@ -109,3 +166,17 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+    '''pv = PVInverter(1)
+    [pv.sync_with_hardware() for _ in range(10)]
+
+    for e in pv.events:
+        print(e)
+        eventstrings = e.infomations()
+        [print('\t{}'.format(s)) for s in eventstrings]
+        '''
+            
+
+
+
+
