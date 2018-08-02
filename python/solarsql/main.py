@@ -73,10 +73,12 @@ class PVInverter(object):
         self.error_code = 0
         self.events = []
         self.kw = 0
-        self.kwh = 0
+        self.kwh = 1000
        
     def __str__(self):
-        return 'Inverter-{}, {:>5.3f} kw, {:>7.3f} kwh'.format(self.mid, round(self.kw,3), round(self.kwh,3))
+        #return 'Inverter-{}, {:>5.3f} kw, {:>7.3f} kwh'.format(self.mid, round(self.kw,3), round(self.kwh,3))
+        return 'Inverter-{}, {:>5.3f} kw, {:>7.3f} kwh, {} events'.format(
+            self.mid, round(self.kw,3), round(self.kwh,3), len(self.events))
 
     def sync_with_hardware(self):
         time.sleep(random.randint(50,200)/1000)
@@ -93,14 +95,14 @@ class PVInverter(object):
         self.kwh += self.kw
 
     def make_record(self):
-        return InverterRecord(self.mid, time.time(), round(self.kw,3), round(self.kwh,3))
+        return InverterRecord(self.mid, time.time(), round(self.kw,3), round(self.kwh,0))
 
 
 
 class Collector(threading.Thread):
-    def __init__(self, oqueue):
+    def __init__(self, obus):
         threading.Thread.__init__(self)       
-        self.oqueue = oqueue
+        self.obus = obus
 
 
     def run(self):
@@ -112,32 +114,36 @@ class Collector(threading.Thread):
         ltime = time.localtime()
         while True:
 
-            for pv in pvgroup:
-                pv.sync_with_hardware()
-                print(pv)
-
-                pv.events.clear()
+            [pv.sync_with_hardware() for pv in pvgroup]
+            
+            #[print(pv) for pv in pvgroup]
 
 
             if time.localtime().tm_min != ltime.tm_min:
-                ltime = time.localtime()
                 print('New minute: {}'.format(ltime.tm_min))
+
+                for pv in pvgroup:
+                    print(pv)
+                    [self.obus.event.put(e) for e in pv.events]
+                    pv.events.clear()
+
 
                 for pv in pvgroup:
                     r = pv.make_record()
                     print('Get new records: {}'.format(r))
-                    self.oqueue.put(r)
+                    self.obus.measure.put(r)
 
+
+                ltime = time.localtime()
 
             time.sleep(1)
 
 
-
 class Uploader(threading.Thread):
-    def __init__(self, iqueue, oqueue):
+    def __init__(self, ibus, obus):
         threading.Thread.__init__(self)       
-        self.iqueue = iqueue
-        self.oqueue = oqueue
+        self.ibus = ibus 
+        self.obus = obus 
 
     def run(self):
         while True:
@@ -145,15 +151,33 @@ class Uploader(threading.Thread):
             time.sleep(1)
 
 
+class Bus(object):
+    def __init__(self):
+        self.event = queue.Queue()
+        self.measure = queue.Queue()
+        self.illu = queue.Queue()
+        self.temp = queue.Queue()
+
 def main():
+
+    abus = Bus()
+    bbus = Bus()
+    cbus = Bus()
+
+
 
     aqueue = queue.Queue()
     bqueue = queue.Queue()
     cqueue = queue.Queue()
 
-    ct = Collector(aqueue)
+    '''ct = Collector(aqueue)
     rt = recorderdb.RecorderDB(aqueue, bqueue, cqueue)
     ut = Uploader(bqueue, cqueue)
+    '''
+
+    ct = Collector(abus)
+    rt = recorderdb.RecorderDB(abus, bbus, cbus)
+    ut = Uploader(bbus, cbus)
 
     ct.start()
     rt.start()
