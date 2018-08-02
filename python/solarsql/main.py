@@ -50,18 +50,59 @@ class InverterAlarmEvent(object):
                 results.append(s)
         return results
 
-
-
-
-
-
+    def to_tuples(self):
+        results = []
+        for shift in range(0, 8):
+            mask = 0x01 << shift
+            newerbit = self.newer_code & mask
+            olderbit = self.older_code & mask
+            if olderbit != newerbit:
+                ts = time.strftime('%Y/%m/%d %H:%M:%S', time.localtime(self.timestamp))
+                stat = 'H' if newerbit else 'R'
+                tp = (self.mid, ts, 1, shift, stat)
+                results.append(tp)
+        return results
 
 class InverterErrorEvent(object):
     pass
-class InverterOnlineEvent(object):
-    pass
-class InverterOfflineEvent(object):
-    pass
+
+
+class InverterLinkEvent(object):
+    def __init__(self, mid, timestamp, older_code, newer_code):
+        self.mid = mid
+        self.timestamp = timestamp
+        self.older_code = older_code 
+        self.newer_code = newer_code 
+
+    def __str__(self):
+        tp = self.to_tuple()
+        return ','.join(tp)
+
+    def to_tuple(self):
+        timestring = time.strftime('%Y/%m/%d %H:%M:%S', time.localtime(self.timestamp))
+        if newer_code:
+            return (self.mid, timestring, 0, 100, 'H')
+        else:
+            return (self.mid, timestring, 0, 101, 'H')
+
+
+            
+            
+
+
+
+        results = []
+        for shift in range(0, 8):
+            mask = 0x01 << bitindex
+            newerbit = self.newer_code & mask
+            olderbit = self.older_code & mask
+            if olderbit != newerbit:
+                ts = time.strftime('%Y/%m/%d %H:%M:%S', time.localtime(self.timestamp))
+                stat = 'H' if newerbit else 'R'
+                s = '{},{},1,{},{}'.format(self.mid, ts, shift, stat)
+                results.append(s)
+        return results
+        
 
 
 

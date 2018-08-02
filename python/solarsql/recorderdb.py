@@ -152,7 +152,7 @@ class RecorderDB(threading.Thread):
             sql = "insert into measurehour values (NULL, ?, datetime(?, 'unixepoch', 'localtime'), ?, ?, 0)"
             c.execute(sql, (mid, timestamp, kw, kwh))
 
-        dbconn.commit()
+        self.dbconn.commit()
         print('Commit database')
 
 
