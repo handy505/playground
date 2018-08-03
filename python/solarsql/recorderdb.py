@@ -11,13 +11,17 @@ import datetime
 
 
 class RecorderDB(threading.Thread):
-    def __init__(self, ibus , oqueue, fbqueue):
+    def __init__(self, ibus , obus, fbbus):
         threading.Thread.__init__(self)       
         self.ibus = ibus 
-        self.oqueue = oqueue
-        self.fbqueue = fbqueue
+        self.obus = obus
+        self.fbbus = fbbus
 
         self.commit_timestamp = time.time()
+
+        self.event_uploading_uid = None
+        self.measure_uploading_uid = None
+        self.measurehour_uploading_uid = None
 
     def run(self):
         '''
@@ -28,74 +32,44 @@ class RecorderDB(threading.Thread):
             temp    temp_hourly
         '''
         self.dbconn = sqlite3.connect('data.db')
-        c = self.dbconn.cursor()
+
+        self.create_event_table_if_not_exists()
+        self.create_minute_table_if_not_exists()
+        self.create_minutehour_table_if_not_exists()
+        #self.create_illu_table_if_not_exists()
+        #self.create_illuhour_table_if_not_exists()
+        #self.create_temp_table_if_not_exists()
+        #self.create_temphour_table_if_not_exists()
 
 
-        # create event table
-        sql = ''' 
-        CREATE TABLE IF NOT EXISTS event(
-            uid         INTEGER PRIMARY KEY AUTOINCREMENT,
-            mid         INTEGER NOT NULL,
-            datetime    TEXT NOT NULL,
-            older       INTEGER NOT NULL,
-            newer       INTEGER NOT NULL,
-            uploaded    INTEGER NOT NULL DEFAULT 0
-        );
-        '''
-        c.execute(sql)
+
+        # initialize event uploading uid
+        self.init_event_uplading_uid()
 
 
-        # create measure table
-        sql = ''' 
-        CREATE TABLE IF NOT EXISTS measure (
-            uid         INTEGER PRIMARY KEY AUTOINCREMENT,
-            mid         INTEGER NOT NULL,
-            datetime    TEXT NOT NULL,
-            kw          REAL NOT NULL,
-            kwh         REAL NOT NULL,
-            uploaded    INTEGER NOT NULL DEFAULT 0
-        );
-        '''
-        c.execute(sql)
-
-
-        # create hourly measure table
-        sql = ''' 
-        CREATE TABLE IF NOT EXISTS measurehour (
-            uid         INTEGER PRIMARY KEY AUTOINCREMENT,
-            mid         INTEGER NOT NULL,
-            datetime    TEXT NOT NULL,
-            kw          REAL NOT NULL,
-            kwh         REAL NOT NULL,
-            uploaded    INTEGER NOT NULL DEFAULT 0
-        );
-        '''
-        c.execute(sql)
 
         minutely_localtime = time.localtime()
         hourly_localtime = time.localtime()
-
         while True:
             try:
+                self.event_operation()
+
 
                 # every minute
                 if time.localtime().tm_min != minutely_localtime.tm_min:
-                    self.event_operation()
                     self.minutely_operation()
                     minutely_localtime = time.localtime()
-
 
                 # every hour
                 if time.localtime().tm_hour != hourly_localtime.tm_hour:
                     self.hourly_operation()
                     hourly_localtime = time.localtime()
 
-
                 time.sleep(3)
             except Exception as ex:
                 print(repr(ex))
-                cmd = 'echo {} >> recorderdb.log'.format(repr(ex))
-                os.system(cmd)
+                sys.exit()
+
 
     def event_operation(self):
         recs = []
@@ -103,9 +77,53 @@ class RecorderDB(threading.Thread):
             rec = self.ibus.event.get()
             recs.append(rec)
 
-        print('receive {} events'.format(len(recs)))
+        recs.clear()
+
+        # input to database
+        for rec in recs:
+            c = self.dbconn.cursor()
+            sql = "INSERT INTO event VALUES (NULL, ?, datetime(?, 'unixepoch', 'localtime'), ?, ?, ?, ?, 0)"
+            c.execute(sql, (rec.mid, rec.timestamp, rec.kind, rec.code, rec.stat, rec.onlinecount))
 
 
+
+        # output to upload
+        if self.event_uploading_uid:
+            #print('event uploading uid: {}'.format(self.event_uploading_uid))
+
+            c = self.dbconn.cursor()
+            sql = "select * from event where uid >= ? limit 3"
+            c.execute(sql,(self.event_uploading_uid,))
+            rows = c.fetchall()
+            #[print(row) for row in rows]
+            
+            # if nothing get ???
+
+            #uids = [row[0] for row in rows]
+            #self.event_uploading_uid = max(uids) + 1
+            maxuid = rows[-1][0]
+            self.event_uploading_uid = maxuid + 1 
+            print('event uploading uid: {}'.format(self.event_uploading_uid))
+
+            dbeventrows = [DBEventRow(r) for r in rows] # create objects
+
+            [self.obus.event.put(dbeventrow) for dbeventrow in dbeventrows] # output
+
+        else:
+            self.init_event_uploading_uid()
+
+
+        # feedback to database
+        uuids = []
+        while not self.fbbus.event.empty():
+            uuid = self.fbbus.event.get()
+            uuids.append(uuid)
+        
+        if uuids:
+            print('uploaded uuids: {}'.format(uuids))
+            c = self.dbconn.cursor()
+            sql = "update event set uploaded =1 where uid <= ?"
+            c.execute(sql, (max(uuids),))
 
 
 
@@ -115,21 +133,14 @@ class RecorderDB(threading.Thread):
             rec = self.ibus.measure.get()
             recs.append(rec)
 
-
-        start  = time.time()
         for rec in recs:
             c = self.dbconn.cursor()
             sql = "INSERT INTO measure VALUES (NULL, ?, datetime(?, 'unixepoch', 'localtime'), ?, ?, 0)"
             c.execute(sql, (rec.mid, rec.timestamp, rec.kw, rec.kwh))
-        print('Insert database: {} seconds'.format(round((time.time()-start),6)))
 
-
-        # commit
-        if time.time() - self.commit_timestamp > (60*10):
-            start = time.time()
-            self.dbconn.commit()
-            print('Commit database: {} seconds'.format(round((time.time()-start),6)))
-            self.commit_timestamp = time.time()
+        print('Commit database')
+        self.dbconn.commit()
+        
 
 
     def hourly_operation(self):
@@ -152,8 +163,62 @@ class RecorderDB(threading.Thread):
             sql = "insert into measurehour values (NULL, ?, datetime(?, 'unixepoch', 'localtime'), ?, ?, 0)"
             c.execute(sql, (mid, timestamp, kw, kwh))
 
-        self.dbconn.commit()
         print('Commit database')
+        self.dbconn.commit()
+
+
+    def create_event_table_if_not_exists(self):
+        c = self.dbconn.cursor()
+        sql = ''' 
+        CREATE TABLE IF NOT EXISTS event(
+            uid         INTEGER PRIMARY KEY AUTOINCREMENT,
+            mid         INTEGER NOT NULL,
+            datetime    TEXT NOT NULL,
+            type        TEXT NOT NULL,
+            code        INTEGER NOT NULL, 
+            stat        TEXT NOT NULL,
+            onlinecount INTEGER NOT NULL, 
+            uploaded    INTEGER NOT NULL DEFAULT 0
+        );
+        '''
+        c.execute(sql)
+
+
+    def create_minute_table_if_not_exists(self):
+        c = self.dbconn.cursor()
+        sql = ''' 
+        CREATE TABLE IF NOT EXISTS measure (
+            uid         INTEGER PRIMARY KEY AUTOINCREMENT,
+            mid         INTEGER NOT NULL,
+            datetime    TEXT NOT NULL,
+            kw          REAL NOT NULL,
+            kwh         REAL NOT NULL,
+            uploaded    INTEGER NOT NULL DEFAULT 0
+        );
+        '''
+        c.execute(sql)
+
+
+    def create_minutehour_table_if_not_exists(self):
+        c = self.dbconn.cursor()
+        sql = ''' 
+        CREATE TABLE IF NOT EXISTS measurehour (
+            uid         INTEGER PRIMARY KEY AUTOINCREMENT,
+            mid         INTEGER NOT NULL,
+            datetime    TEXT NOT NULL,
+            kw          REAL NOT NULL,
+            kwh         REAL NOT NULL,
+            uploaded    INTEGER NOT NULL DEFAULT 0
+        );
+        '''
+        c.execute(sql)
+
+    def init_event_uplading_uid(self):
+        c = self.dbconn.cursor()
+        sql = "select min(uid) from event where uploaded == 0"
+        c.execute(sql)
+        r = c.fetchone()
+        self.event_uploading_uid = r[0]
 
 
 
@@ -221,17 +286,28 @@ def machine_ids(dbconn):
     print(machines)
 
 
+class DBEventRow(object):
+    def __init__(self, row):
+        self.uid = row[0]
+        self.mid = row[1]
+        self.timestring = row[2]
+        self.kind = row[3]
+        self.code = row[4]
+        self.stat = row[5]
+        self.onlinecount = row[6]
+
+
+
+
 if __name__ == '__main__':
-
-    dbconn = sqlite3.connect('data.db')
-
 
     #machine_ids(dbconn)
 
     #check_hourly_measure_table(dbconn)
 
-
-
+    rt = RecorderDB(None, None, None)
+    rt.start()
+    rt.join()
 
 
 
