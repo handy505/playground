@@ -19,9 +19,9 @@ class RecorderDB(threading.Thread):
 
         self.commit_timestamp = time.time()
 
-        self.event_uploading_uid = None
-        self.measure_uploading_uid = None
-        self.measurehour_uploading_uid = None
+        self.event_uploading_uid = 0
+        self.measure_uploading_uid = 0
+        self.measurehour_uploading_uid = 0
 
     def run(self):
         '''
@@ -44,7 +44,7 @@ class RecorderDB(threading.Thread):
 
 
         # initialize event uploading uid
-        self.init_event_uplading_uid()
+        self.init_event_uploading_uid()
 
 
 
@@ -77,7 +77,8 @@ class RecorderDB(threading.Thread):
             rec = self.ibus.event.get()
             recs.append(rec)
 
-        recs.clear()
+        #recs.clear()
+
 
         # input to database
         for rec in recs:
@@ -86,31 +87,26 @@ class RecorderDB(threading.Thread):
             c.execute(sql, (rec.mid, rec.timestamp, rec.kind, rec.code, rec.stat, rec.onlinecount))
 
 
-
         # output to upload
-        if self.event_uploading_uid:
-            #print('event uploading uid: {}'.format(self.event_uploading_uid))
+        print('event uploading uid: {}'.format(self.event_uploading_uid))
 
-            c = self.dbconn.cursor()
-            sql = "select * from event where uid >= ? limit 3"
-            c.execute(sql,(self.event_uploading_uid,))
-            rows = c.fetchall()
-            #[print(row) for row in rows]
-            
-            # if nothing get ???
+        c = self.dbconn.cursor()
+        sql = "select * from event where uid > ? limit 3"
+        c.execute(sql,(self.event_uploading_uid,))
+        rows = c.fetchall()
+        [print(row) for row in rows]
+        
+        # if nothing get ???
 
-            #uids = [row[0] for row in rows]
-            #self.event_uploading_uid = max(uids) + 1
-            maxuid = rows[-1][0]
-            self.event_uploading_uid = maxuid + 1 
-            print('event uploading uid: {}'.format(self.event_uploading_uid))
+        #uids = [row[0] for row in rows]
+        #self.event_uploading_uid = max(uids) + 1
+        maxuid = rows[-1][0]
+        self.event_uploading_uid = maxuid
+        print('event uploading uid: {}'.format(self.event_uploading_uid))
 
-            dbeventrows = [DBEventRow(r) for r in rows] # create objects
+        dbeventrows = [DBEventRow(r) for r in rows] # create objects
+        [self.obus.event.put(dbeventrow) for dbeventrow in dbeventrows] # output
 
-            [self.obus.event.put(dbeventrow) for dbeventrow in dbeventrows] # output
-
-        else:
-            self.init_event_uploading_uid()
 
 
         # feedback to database
@@ -120,7 +116,7 @@ class RecorderDB(threading.Thread):
             uuids.append(uuid)
         
         if uuids:
-            print('uploaded uuids: {}'.format(uuids))
+            #print('uploaded uuids: {}'.format(uuids))
             c = self.dbconn.cursor()
             sql = "update event set uploaded =1 where uid <= ?"
             c.execute(sql, (max(uuids),))
@@ -213,12 +209,18 @@ class RecorderDB(threading.Thread):
         '''
         c.execute(sql)
 
-    def init_event_uplading_uid(self):
+    def init_event_uploading_uid(self):
         c = self.dbconn.cursor()
-        sql = "select min(uid) from event where uploaded == 0"
+        sql = "select max(uid) from event where uploaded == 1"
         c.execute(sql)
         r = c.fetchone()
-        self.event_uploading_uid = r[0]
+        print(r)
+        print('init event uploading uid: {}'.format(self.event_uploading_uid))
+        if r[0]:
+            self.event_uploading_uid = r[0]
+        else:
+            self.event_uploading_uid = 0
+        print('init event uploading uid: {}'.format(self.event_uploading_uid))
 
 
 
