@@ -39,7 +39,7 @@ class Collector(threading.Thread):
                 print('New minute: {}'.format(ltime.tm_min))
                 for pv in pvgroup:
                     r = pv.make_record()
-                    print('Get new records: {}'.format(r))
+                    print('Generate new measurement: {}'.format(r))
                     self.obus.measure.put(r)
 
 

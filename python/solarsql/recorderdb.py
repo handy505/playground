@@ -17,11 +17,10 @@ class RecorderDB(threading.Thread):
         self.obus = obus
         self.fbbus = fbbus
 
-        self.commit_timestamp = time.time()
-
         self.event_uploading_uid = 0
         self.measure_uploading_uid = 0
         self.measurehour_uploading_uid = 0
+
 
     def run(self):
         '''
@@ -42,28 +41,32 @@ class RecorderDB(threading.Thread):
         #self.create_temphour_table_if_not_exists()
 
 
-
-        # initialize event uploading uid
+        # initialize uploading uid
         self.init_event_uploading_uid()
+        self.init_measure_uploading_uid()
+        self.init_measurehour_uploading_uid()
 
 
-
-        minutely_localtime = time.localtime()
-        hourly_localtime = time.localtime()
+        minutely_datetime = datetime.datetime.now()
+        hourly_datetime = datetime.datetime.now()
         while True:
             try:
-                self.event_operation()
-
+                #self.event_operation()
+                self.minutely_measurement_operation()
 
                 # every minute
-                if time.localtime().tm_min != minutely_localtime.tm_min:
-                    self.minutely_operation()
-                    minutely_localtime = time.localtime()
+                if datetime.datetime.now().minute != minutely_datetime.minute:
+                    print('Minutely {}'.format(datetime.datetime.now()))
+                    if datetime.datetime.now().minute % 5 == 0:
+                        print('Commit database')
+                        self.dbconn.commit()
+                    minutely_datetime = datetime.datetime.now()
 
                 # every hour
-                if time.localtime().tm_hour != hourly_localtime.tm_hour:
-                    self.hourly_operation()
-                    hourly_localtime = time.localtime()
+                if datetime.datetime.now().hour != hourly_datetime.hour:
+                    print('Hourly {}'.format(datetime.datetime.now()))
+                    #self.hourly_measurement_generate()
+                    hourly_datetime = datetime.datetime.now()
 
                 time.sleep(3)
             except Exception as ex:
@@ -72,74 +75,112 @@ class RecorderDB(threading.Thread):
 
 
     def event_operation(self):
-        recs = []
-        while not self.ibus.event.empty():
-            rec = self.ibus.event.get()
-            recs.append(rec)
+        try:
+            # input to database
+            recs = []
+            while not self.ibus.event.empty():
+                rec = self.ibus.event.get()
+                recs.append(rec)
 
-        #recs.clear()
+            for rec in recs:
+                c = self.dbconn.cursor()
+                sql = "INSERT INTO event VALUES (NULL, ?, datetime(?, 'unixepoch', 'localtime'), ?, ?, ?, ?, 0)"
+                c.execute(sql, (rec.mid, rec.timestamp, rec.kind, rec.code, rec.stat, rec.onlinecount))
 
 
-        # input to database
-        for rec in recs:
+            # output to upload
             c = self.dbconn.cursor()
-            sql = "INSERT INTO event VALUES (NULL, ?, datetime(?, 'unixepoch', 'localtime'), ?, ?, ?, ?, 0)"
-            c.execute(sql, (rec.mid, rec.timestamp, rec.kind, rec.code, rec.stat, rec.onlinecount))
+            sql = "select * from event where uid > ? limit 3"
+            c.execute(sql,(self.event_uploading_uid,))
+            rows = c.fetchall()
+            #[print(row) for row in rows]
+            
+            if rows[0]:
+                maxuid = rows[-1][0]
+                self.event_uploading_uid = maxuid
+                dbeventrows = [DBEventRow(r) for r in rows] # create objects
+                [self.obus.event.put(dbeventrow) for dbeventrow in dbeventrows] # output
+            print('event uploading uid: {}'.format(self.event_uploading_uid))
 
 
-        # output to upload
-        print('event uploading uid: {}'.format(self.event_uploading_uid))
-
-        c = self.dbconn.cursor()
-        sql = "select * from event where uid > ? limit 3"
-        c.execute(sql,(self.event_uploading_uid,))
-        rows = c.fetchall()
-        [print(row) for row in rows]
-        
-        # if nothing get ???
-
-        #uids = [row[0] for row in rows]
-        #self.event_uploading_uid = max(uids) + 1
-        maxuid = rows[-1][0]
-        self.event_uploading_uid = maxuid
-        print('event uploading uid: {}'.format(self.event_uploading_uid))
-
-        dbeventrows = [DBEventRow(r) for r in rows] # create objects
-        [self.obus.event.put(dbeventrow) for dbeventrow in dbeventrows] # output
+            # feedback to database
+            uuids = []
+            while not self.fbbus.event.empty():
+                uuid = self.fbbus.event.get()
+                uuids.append(uuid)
+            
+            if uuids:
+                #print('uploaded uuids: {}'.format(uuids))
+                c = self.dbconn.cursor()
+                sql = "update event set uploaded = 1 where uid <= ?"
+                c.execute(sql, (max(uuids),))
+        except Exception as ex:
+            print('Exception in event_operation(), {}'.format(repr(ex)))
 
 
 
-        # feedback to database
-        uuids = []
-        while not self.fbbus.event.empty():
-            uuid = self.fbbus.event.get()
-            uuids.append(uuid)
-        
-        if uuids:
-            #print('uploaded uuids: {}'.format(uuids))
+    def minutely_measurement_operation(self):
+        try:
+            # input to database
+            #print('input')
+            recs = []
+            while not self.ibus.measure.empty():
+                rec = self.ibus.measure.get()
+                recs.append(rec)
+
+            for rec in recs:
+                c = self.dbconn.cursor()
+                sql = "insert into measure values(NULL, ?, datetime(?, 'unixepoch', 'localtime'),?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,0)"
+                c.execute(sql, (
+                    rec.mid, rec.timestamp, 
+                    rec.OutputPower, 
+                    rec.ACVolPhaseA, rec.ACVolPhaseB, rec.ACVolPhaseC,
+                    rec.ACFrequency,
+                    rec.ACOutputCurrentA, rec.ACOutputCurrentB, rec.ACOutputCurrentC,
+                    rec.DC1InputVol, rec.DC2InputVol,
+                    rec.DC1InputCurrent, rec.DC2InputCurrent,
+                    rec.DCBusPositiveVol, rec.DCBusNegativeVol,
+                    rec.InternalTemper, rec.HeatSinkTemper,
+                    rec.InputPowerA, rec.InputPowerB,
+                    rec.TotalOutputPower))
+
+
+            # output to upload
+            #print('output')
             c = self.dbconn.cursor()
-            sql = "update event set uploaded =1 where uid <= ?"
-            c.execute(sql, (max(uuids),))
+            sql = "select * from measure where uid > ? limit 3"
+            c.execute(sql,(self.measure_uploading_uid,))
+            rows = c.fetchall()
+            #[print(row) for row in rows]
+            
+            # if nothing get ???
+            if rows:
+                maxuid = rows[-1][0]
+                self.measure_uploading_uid = maxuid
+                dbmeasurerows = [DBMeasureRow(r) for r in rows] # create objects
+                [self.obus.measure.put(dbmeasurerow) for dbmeasurerow in dbmeasurerows] # output
+            #print('measure uploading uid: {}'.format(self.measure_uploading_uid))
 
 
+            # feedback to database
+            #print('feedback')
+            uuids = []
+            while not self.fbbus.measure.empty():
+                uuid = self.fbbus.measure.get()
+                uuids.append(uuid)
+            
+            if uuids:
+                #print('uploaded uuids: {}'.format(uuids))
+                c = self.dbconn.cursor()
+                sql = "update measure set uploaded = 1 where uid <= ?"
+                c.execute(sql, (max(uuids),))
+        except Exception as ex:
+            print('Exception in minutely_operation(), {}'.format(repr(ex)))
 
-    def minutely_operation(self):
-        recs = []
-        while not self.ibus.measure.empty():
-            rec = self.ibus.measure.get()
-            recs.append(rec)
-
-        for rec in recs:
-            c = self.dbconn.cursor()
-            sql = "INSERT INTO measure VALUES (NULL, ?, datetime(?, 'unixepoch', 'localtime'), ?, ?, 0)"
-            c.execute(sql, (rec.mid, rec.timestamp, rec.kw, rec.kwh))
-
-        print('Commit database')
-        self.dbconn.commit()
         
 
 
-    def hourly_operation(self):
+    def hourly_measurement_generate(self):
         print('hour_operation()')
 
         now = datetime.datetime.now()
@@ -180,7 +221,7 @@ class RecorderDB(threading.Thread):
         c.execute(sql)
 
 
-    def create_minute_table_if_not_exists(self):
+    def create_minute_table_if_not_exists_bkp(self):
         c = self.dbconn.cursor()
         sql = ''' 
         CREATE TABLE IF NOT EXISTS measure (
@@ -193,6 +234,40 @@ class RecorderDB(threading.Thread):
         );
         '''
         c.execute(sql)
+
+
+    def create_minute_table_if_not_exists(self):
+        c = self.dbconn.cursor()
+        sql = ''' 
+        CREATE TABLE IF NOT EXISTS measure (
+            uid                 INTEGER PRIMARY KEY AUTOINCREMENT,
+            mid                 INTEGER NOT NULL,
+            datetime            TEXT NOT NULL,
+            OutputPower         INTEGER NOT NULL,
+            ACVolPhaseA         INTEGER NOT NULL,
+            ACVolPhaseB         INTEGER NOT NULL,
+            ACVolPhaseC         INTEGER NOT NULL,
+            ACFrequency         INTEGER NOT NULL,
+            ACOutputCurrentA    INTEGER NOT NULL,
+            ACOutputCurrentB    INTEGER NOT NULL,
+            ACOutputCurrentC    INTEGER NOT NULL,
+            DC1InputVol         INTEGER NOT NULL,
+            DC2InputVol         INTEGER NOT NULL,
+            DC1InputCurrent     INTEGER NOT NULL,
+            DC2InputCurrent     INTEGER NOT NULL,
+            DCBusPositiveVol    INTEGER NOT NULL,
+            DCBusNegativeVol    INTEGER NOT NULL,
+            InternalTemper      INTEGER NOT NULL,
+            HeatSinkTemper      INTEGER NOT NULL,
+            InputPowerA         INTEGER NOT NULL,
+            InputPowerB         INTEGER NOT NULL,
+            TotalOutputPower    INTEGER NOT NULL,
+            uploaded            INTEGER NOT NULL DEFAULT 0
+        );
+        '''
+        c.execute(sql)
+
+
 
 
     def create_minutehour_table_if_not_exists(self):
@@ -209,20 +284,41 @@ class RecorderDB(threading.Thread):
         '''
         c.execute(sql)
 
+
     def init_event_uploading_uid(self):
         c = self.dbconn.cursor()
         sql = "select max(uid) from event where uploaded == 1"
         c.execute(sql)
         r = c.fetchone()
-        print(r)
-        print('init event uploading uid: {}'.format(self.event_uploading_uid))
         if r[0]:
             self.event_uploading_uid = r[0]
         else:
             self.event_uploading_uid = 0
-        print('init event uploading uid: {}'.format(self.event_uploading_uid))
+        print('Init event uploading uid: {}'.format(self.event_uploading_uid))
 
 
+    def init_measure_uploading_uid(self):
+        c = self.dbconn.cursor()
+        sql = "select max(uid) from measure where uploaded == 1"
+        c.execute(sql)
+        r = c.fetchone()
+        if r[0]: 
+            self.measure_uploading_uid = r[0]
+        else:    
+            self.measure_uploading_uid = 0
+        print('Init measure uploading uid: {}'.format(self.measure_uploading_uid))
+
+
+    def init_measurehour_uploading_uid(self):
+        c = self.dbconn.cursor()
+        sql = "select max(uid) from measurehour where uploaded == 1"
+        c.execute(sql)
+        r = c.fetchone()
+        if r[0]: 
+            self.measurehour_uploading_uid = r[0]
+        else:    
+            self.measurehour_uploading_uid = 0
+        print('Init measurehour uploading uid: {}'.format(self.measurehour_uploading_uid))
 
 
 def check_hourly_measure_table(dbconn):
@@ -298,7 +394,39 @@ class DBEventRow(object):
         self.stat = row[5]
         self.onlinecount = row[6]
 
+class DBMeasureRow_bkp(object):
+    def __init__(self, row):
+        self.uid = row[0]
+        self.mid = row[1]
+        self.timestring = row[2]
+        self.kw = row[3]
+        self.kwh = row[4]
 
+
+class DBMeasureRow(object):
+    def __init__(self, row):
+        self.uid = row[0]
+        self.mid = row[1]
+        self.timestring = row[2]
+        self.OutputPower = row[3]
+        self.ACVolPhaseA = row[4]
+        self.ACVolPhaseB = row[5]
+        self.ACVolPhaseC = row[6]
+        self.ACFrequency = row[7]
+        self.ACOutputCurrentA = row[8]
+        self.ACOutputCurrentB = row[9]
+        self.ACOutputCurrentC = row[10]
+        self.DC1InputVol = row[11]
+        self.DC2InputVol = row[12]
+        self.DC1InputCurrent = row[13]
+        self.DC2InputCurrent = row[14]
+        self.DCBusPositiveVol = row[15]
+        self.DCBusNegativeVol = row[16]
+        self.InternalTemper = row[17]
+        self.HeatSinkTemper = row[18]
+        self.InputPowerA = row[19]
+        self.InputPowerB = row[20]
+        self.TotalOutputPower = row[21]
 
 
 if __name__ == '__main__':
@@ -311,9 +439,4 @@ if __name__ == '__main__':
     rt.start()
     rt.join()
 
-
-
-
-
-    
 
