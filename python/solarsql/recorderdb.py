@@ -3,7 +3,6 @@ import threading
 import time
 import queue
 import sqlite3
-import random
 import queue
 import sys
 import os
@@ -47,6 +46,10 @@ class RecorderDB(threading.Thread):
         self.init_measurehour_uploading_uid()
 
 
+        self.check_measurehour_table()
+
+
+
         minutely_datetime = datetime.datetime.now()
         hourly_datetime = datetime.datetime.now()
         while True:
@@ -56,7 +59,7 @@ class RecorderDB(threading.Thread):
 
                 # every minute
                 if datetime.datetime.now().minute != minutely_datetime.minute:
-                    print('Minutely {}'.format(datetime.datetime.now()))
+                    #print('Minutely {}'.format(datetime.datetime.now()))
                     if datetime.datetime.now().minute % 5 == 0:
                         print('Commit database')
                         self.dbconn.commit()
@@ -64,8 +67,8 @@ class RecorderDB(threading.Thread):
 
                 # every hour
                 if datetime.datetime.now().hour != hourly_datetime.hour:
-                    print('Hourly {}'.format(datetime.datetime.now()))
-                    #self.hourly_measurement_generate()
+                    #print('Hourly {}'.format(datetime.datetime.now()))
+                    self.hourly_measurement_generate()
                     hourly_datetime = datetime.datetime.now()
 
                 time.sleep(3)
@@ -177,31 +180,161 @@ class RecorderDB(threading.Thread):
         except Exception as ex:
             print('Exception in minutely_operation(), {}'.format(repr(ex)))
 
-        
-
 
     def hourly_measurement_generate(self):
-        print('hour_operation()')
+        try:
+            now = datetime.datetime.now()
+            since = '{:0=4}-{:0=2}-{:0=2} {:0=2}:00:00'.format(now.year, now.month, now.day, now.hour)
+            to    = '{:0=4}-{:0=2}-{:0=2} {:0=2}:59:59'.format(now.year, now.month, now.day, now.hour)
 
-        now = datetime.datetime.now()
-        start = '{:0=4}-{:0=2}-{:0=2} {:0=2}:00:00'.format(now.year, now.month, now.day, now.hour)
-        end   = '{:0=4}-{:0=2}-{:0=2} {:0=2}:59:59'.format(now.year, now.month, now.day, now.hour)
+            self.insert_one_hourly_record(since, to, 1)
+
+            print('Commit database')
+            self.dbconn.commit()
+        except Exception as ex:
+            print('Exception in hourly_measurement_generate(), {}'.format(repr(ex)))
+
+
+
+    def get_oldest_datetime_from_minute_table(self):
+        try:
+            c = self.dbconn.cursor()
+            sql = "select min(datetime) from measure"
+            c.execute(sql)
+            r = c.fetchone()
+            timestring = r[0]
+            return datetime.datetime.strptime(timestring, '%Y-%m-%d %H:%M:%S')
+        except Exception as ex:
+            print('Exception in get_oldest_minute_timestring(), {}'.format(repr(ex)))
         
-        c = self.dbconn.cursor()
-        sql = "select avg(kw), avg(kwh) from measure where datetime between ? and ? and mid == ?" 
-        c.execute(sql,(start, end, '1'))
-        r = c.fetchone()
-        kw = r[0]
-        kwh = r[1]
-        if kw and kwh:
-            mid = 1
-            hourdt = now + datetime.timedelta(hours=1)
-            timestamp = time.mktime(hourdt.timetuple())
-            sql = "insert into measurehour values (NULL, ?, datetime(?, 'unixepoch', 'localtime'), ?, ?, 0)"
-            c.execute(sql, (mid, timestamp, kw, kwh))
 
-        print('Commit database')
+    def get_newest_datetime_from_minute_table(self):
+        try:
+            c = self.dbconn.cursor()
+            sql = "select max(datetime) from measure"
+            c.execute(sql)
+            r = c.fetchone()
+            timestring = r[0]
+            return datetime.datetime.strptime(timestring, '%Y-%m-%d %H:%M:%S')
+        except Exception as ex:
+            print('Exception in get_newest_minute_timestring(), {}'.format(repr(ex)))
+
+
+    def get_hourly_datetimes(self):
+        try:
+            c = self.dbconn.cursor()
+            sql = "select distinct(datetime) from measurehour"
+            c.execute(sql)
+            rows = c.fetchall()
+            hourlyrecords = [r[0] for r in rows]
+            #[print(hr) for hr in hourlyrecords]
+            return hourlyrecords
+        except Exception as ex:
+            print('Exception in get_hourly_datetimes(), {}'.format(repr(ex)))
+    
+
+    def is_hourly_row_exist(self, timestring):
+        try:
+            c = self.dbconn.cursor()
+            sql = "select * from measurehour where datetime == ?"
+            c.execute(sql, (timestring,))
+            rows = c.fetchall()
+            #print('rows: {}'.format(rows))
+            return bool(rows)
+        except Exception as ex:
+            print('Exception in is_hourly_row_exist(), {}'.format(repr(ex)))
+
+
+    def get_last_kwh(self, timestring, mid):
+        #print(timestring)
+
+        c = self.dbconn.cursor()
+        sql = "select max(datetime), TotalOutputPower from measurehour where mid == ? and datetime < ?"
+        c.execute(sql, (1, timestring,))
+        row = c.fetchone()
+        #print('last kwh: {}'.format(row))
+        return row[1]
+
+
+    def generate_avg_measurement(self, since, to, mid):
+        c = self.dbconn.cursor()
+        sql = """select mid, avg(OutputPower), 
+                 avg(ACVolPhaseA), avg(ACVolPhaseB), avg(ACVolPhaseC),
+                 avg(ACFrequency), 
+                 avg(ACOutputCurrentA), avg(ACOutputCurrentB), avg(ACOutputCurrentC),
+                 avg(DC1InputVol), avg(DC2InputVol), 
+                 avg(DC1InputCurrent), avg(DC2InputCurrent), 
+                 avg(DCBusPositiveVol), avg(DCBusNegativeVol),
+                 avg(InternalTemper), avg(HeatSinkTemper),
+                 avg(InputPowerA), avg(InputPowerB),
+                 max(TotalOutputPower)
+                 from measure where datetime between ? and ? and mid == ?""" 
+        c.execute(sql,(since, to, '1'))
+        avgrow = c.fetchone()
+
+        if not avgrow[0]:
+            return 
+
+        # insert timestamp
+        timestamp = time.mktime(datetime.datetime.strptime(since, '%Y-%m-%d %H:%M:%S').timetuple())
+        fullrow = list(avgrow)
+        fullrow.insert(1, timestamp)
+        return fullrow
+
+
+    def check_measurehour_table(self):
+
+        oldest = self.get_oldest_datetime_from_minute_table()
+        print('oldest: {}'.format(oldest))
+        if not oldest: 
+            return
+
+        newest = self.get_newest_datetime_from_minute_table()
+        print('newest: {}'.format(newest))
+        if not newest: 
+            return
+
+        saved_hours = self.get_hourly_datetimes()
+        #print('saved hours: {}'.format(saved_hours))
+
+        oldest_hour = datetime.datetime(oldest.year, oldest.month, oldest.day, oldest.hour)
+        newest_hour = datetime.datetime(newest.year, newest.month, newest.day, newest.hour) - datetime.timedelta(hours=1)
+        print('oldest hour: {}'.format(oldest_hour))
+        print('newest hour: {}'.format(newest_hour))
+        dt = oldest_hour 
+        h = 0
+        while dt < newest_hour:
+            dt = oldest_hour + datetime.timedelta(hours=h)
+            since = '{:0=4}-{:0=2}-{:0=2} {:0=2}:00:00'.format(dt.year, dt.month, dt.day, dt.hour)
+            to    = '{:0=4}-{:0=2}-{:0=2} {:0=2}:59:59'.format(dt.year, dt.month, dt.day, dt.hour)
+            h += 1
+
+            if self.is_hourly_row_exist(since):
+                print('{} exist, skip'.format(since))
+                continue
+
+            self.insert_one_hourly_record(since, to, 1)
         self.dbconn.commit()
+
+
+    def insert_one_hourly_record(self, since, to, mid):
+        row = self.generate_avg_measurement(since, to, 1)
+        prevkwh = self.get_last_kwh(since, 1)
+        if not prevkwh:
+            prevkwh = 0
+
+        if row:
+            kwh = row[-1]
+            diff = kwh - prevkwh
+            if diff < 0: 
+                diff = 0
+
+            #print('KWH: {}, prev: {}, diff: {}'.format(kwh, prevkwh, diff))
+            row.append(prevkwh)
+            row.append(diff)
+            c = self.dbconn.cursor()
+            sql = "insert into measurehour values(NULL, ?, datetime(?, 'unixepoch', 'localtime'),?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,0)"
+            c.execute(sql, row)
 
 
     def create_event_table_if_not_exists(self):
@@ -221,21 +354,6 @@ class RecorderDB(threading.Thread):
         c.execute(sql)
 
 
-    def create_minute_table_if_not_exists_bkp(self):
-        c = self.dbconn.cursor()
-        sql = ''' 
-        CREATE TABLE IF NOT EXISTS measure (
-            uid         INTEGER PRIMARY KEY AUTOINCREMENT,
-            mid         INTEGER NOT NULL,
-            datetime    TEXT NOT NULL,
-            kw          REAL NOT NULL,
-            kwh         REAL NOT NULL,
-            uploaded    INTEGER NOT NULL DEFAULT 0
-        );
-        '''
-        c.execute(sql)
-
-
     def create_minute_table_if_not_exists(self):
         c = self.dbconn.cursor()
         sql = ''' 
@@ -243,24 +361,24 @@ class RecorderDB(threading.Thread):
             uid                 INTEGER PRIMARY KEY AUTOINCREMENT,
             mid                 INTEGER NOT NULL,
             datetime            TEXT NOT NULL,
-            OutputPower         INTEGER NOT NULL,
+            OutputPower         REAL NOT NULL,
             ACVolPhaseA         INTEGER NOT NULL,
             ACVolPhaseB         INTEGER NOT NULL,
             ACVolPhaseC         INTEGER NOT NULL,
-            ACFrequency         INTEGER NOT NULL,
-            ACOutputCurrentA    INTEGER NOT NULL,
-            ACOutputCurrentB    INTEGER NOT NULL,
-            ACOutputCurrentC    INTEGER NOT NULL,
-            DC1InputVol         INTEGER NOT NULL,
-            DC2InputVol         INTEGER NOT NULL,
-            DC1InputCurrent     INTEGER NOT NULL,
-            DC2InputCurrent     INTEGER NOT NULL,
+            ACFrequency         REAL NOT NULL,
+            ACOutputCurrentA    REAL NOT NULL,
+            ACOutputCurrentB    REAL NOT NULL,
+            ACOutputCurrentC    REAL NOT NULL,
+            DC1InputVol         REAL NOT NULL,
+            DC2InputVol         REAL NOT NULL,
+            DC1InputCurrent     REAL NOT NULL,
+            DC2InputCurrent     REAL NOT NULL,
             DCBusPositiveVol    INTEGER NOT NULL,
             DCBusNegativeVol    INTEGER NOT NULL,
             InternalTemper      INTEGER NOT NULL,
             HeatSinkTemper      INTEGER NOT NULL,
-            InputPowerA         INTEGER NOT NULL,
-            InputPowerB         INTEGER NOT NULL,
+            InputPowerA         REAL NOT NULL,
+            InputPowerB         REAL NOT NULL,
             TotalOutputPower    INTEGER NOT NULL,
             uploaded            INTEGER NOT NULL DEFAULT 0
         );
@@ -268,18 +386,35 @@ class RecorderDB(threading.Thread):
         c.execute(sql)
 
 
-
-
     def create_minutehour_table_if_not_exists(self):
         c = self.dbconn.cursor()
         sql = ''' 
         CREATE TABLE IF NOT EXISTS measurehour (
-            uid         INTEGER PRIMARY KEY AUTOINCREMENT,
-            mid         INTEGER NOT NULL,
-            datetime    TEXT NOT NULL,
-            kw          REAL NOT NULL,
-            kwh         REAL NOT NULL,
-            uploaded    INTEGER NOT NULL DEFAULT 0
+            uid                  INTEGER PRIMARY KEY AUTOINCREMENT,
+            mid                  INTEGER NOT NULL,
+            datetime             TEXT NOT NULL,
+            OutputPower          REAL NOT NULL,
+            ACVolPhaseA          REAL NOT NULL,
+            ACVolPhaseB          REAL NOT NULL,
+            ACVolPhaseC          REAL NOT NULL,
+            ACFrequency          REAL NOT NULL,
+            ACOutputCurrentA     REAL NOT NULL,
+            ACOutputCurrentB     REAL NOT NULL,
+            ACOutputCurrentC     REAL NOT NULL,
+            DC1InputVol          REAL NOT NULL,
+            DC2InputVol          REAL NOT NULL,
+            DC1InputCurrent      REAL NOT NULL,
+            DC2InputCurrent      REAL NOT NULL,
+            DCBusPositiveVol     REAL NOT NULL,
+            DCBusNegativeVol     REAL NOT NULL,
+            InternalTemper       REAL NOT NULL,
+            HeatSinkTemper       REAL NOT NULL,
+            InputPowerA          REAL NOT NULL,
+            InputPowerB          REAL NOT NULL,
+            TotalOutputPower     REAL NOT NULL,
+            PrevTotalOutputPower REAL NOT NULL,
+            DiffTotalOutputPower REAL NOT NULL,
+            uploaded             INTEGER NOT NULL DEFAULT 0
         );
         '''
         c.execute(sql)
@@ -320,59 +455,6 @@ class RecorderDB(threading.Thread):
             self.measurehour_uploading_uid = 0
         print('Init measurehour uploading uid: {}'.format(self.measurehour_uploading_uid))
 
-
-def check_hourly_measure_table(dbconn):
-    c = dbconn.cursor()
-
-    # get last minute time string
-    sql = "select min(datetime) from measure"
-    c.execute(sql)
-    r = c.fetchone()
-    timestring = r[0]
-    oldest= datetime.datetime.strptime(timestring, '%Y-%m-%d %H:%M:%S')
-
-
-    sql = "select max(datetime) from measure"
-    c.execute(sql)
-    r = c.fetchone()
-    timestring = r[0]
-    newest= datetime.datetime.strptime(timestring, '%Y-%m-%d %H:%M:%S')
-    print('oldest: {}'.format(repr(oldest)))
-    print('newest: {}'.format(repr(newest)))
-
-
-    sql = "select distinct(datetime) from measurehour"
-    c.execute(sql)
-    rows = c.fetchall()
-    hourlyrecords = [r[0] for r in rows]
-    [print(hr) for hr in hourlyrecords]
-
-    since = datetime.datetime(oldest.year, oldest.month, oldest.day, oldest.hour)
-    dt = since
-    h = 0
-    while dt < newest:
-        dt = since + datetime.timedelta(hours=h)
-
-        # calculate avg
-        start = '{:0=4}-{:0=2}-{:0=2} {:0=2}:00:00'.format(dt.year, dt.month, dt.day, dt.hour)
-        end   = '{:0=4}-{:0=2}-{:0=2} {:0=2}:59:59'.format(dt.year, dt.month, dt.day, dt.hour)
-        sql = "select avg(kw), avg(kwh) from measure where datetime between ? and ? and mid == ?" 
-        c.execute(sql,(start, end, '1'))
-        r = c.fetchone()
-        print(r)
-
-        kw = r[0]
-        kwh = r[1]
-        hourdt = dt + datetime.timedelta(hours=1)
-        if kw and kwh and (str(hourdt) not in hourlyrecords):
-            mid = 1
-            timestamp = time.mktime(hourdt.timetuple())
-            sql = "insert into measurehour values (NULL, ?, datetime(?, 'unixepoch', 'localtime'), ?, ?, 0)"
-            c.execute(sql, (mid, timestamp, kw, kwh))
-
-        h += 1
-
-    dbconn.commit()
 
 
 def machine_ids(dbconn):
@@ -433,7 +515,6 @@ if __name__ == '__main__':
 
     #machine_ids(dbconn)
 
-    #check_hourly_measure_table(dbconn)
 
     rt = RecorderDB(None, None, None)
     rt.start()

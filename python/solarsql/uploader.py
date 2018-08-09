@@ -39,7 +39,13 @@ class Uploader(threading.Thread):
         while True:
             self.event_uploading()
             self.measure_uploading()
+            self.measurehour_uploading()
             time.sleep(1)
+
+    def measurehour_uploading(self):
+        pass
+
+
 
 
     def measure_uploading(self):

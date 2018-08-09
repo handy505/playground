@@ -3,6 +3,7 @@ import threading
 import time
 import queue
 import sys
+import datetime
 
 import recorderdb
 import event
@@ -20,7 +21,7 @@ class Collector(threading.Thread):
         [print(pv) for pv in pvgroup]
 
 
-        ltime = time.localtime()
+        minutely_datetime = datetime.datetime.now()
         while True:
 
             [pv.sync_with_hardware() for pv in pvgroup]
@@ -35,14 +36,12 @@ class Collector(threading.Thread):
                 pv.events.clear()
 
 
-            if time.localtime().tm_min != ltime.tm_min:
-                print('New minute: {}'.format(ltime.tm_min))
+            if datetime.datetime.now().minute != minutely_datetime.minute:
+                print('New minute: {}'.format(datetime.datetime.now().minute))
                 for pv in pvgroup:
                     r = pv.make_record()
                     print('Generate new measurement: {}'.format(r))
                     self.obus.measure.put(r)
-
-
-                ltime = time.localtime()
+                minutely_datetime = datetime.datetime.now()
 
             time.sleep(1)

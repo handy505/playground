@@ -31,7 +31,7 @@ class Measurement(object):
 
     def __str__(self):
         ts = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(self.timestamp))
-        return '{}, {}, {} kw, ..., {} kwh'.format(self.mid, ts, self.OutputPower, self.TotalOutputPower)
+        return '{}, {}, {} kw, ..., {} kwh'.format(self.mid, ts, round(self.OutputPower,3), round(self.TotalOutputPower,3))
 
 
 class PVInverter(object):
@@ -44,10 +44,8 @@ class PVInverter(object):
 
         # for simulate event interval
         self.event_timestamp = time.time()
-        self.kw = 0
-        self.kwh = 1000
        
-        # real
+        # measurement 
         self.OutputPower = 0
         self.ACVolPhaseA = 0
         self.ACVolPhaseB = 0
@@ -69,10 +67,10 @@ class PVInverter(object):
         self.TotalOutputPower = 0
 
 
-
     def __str__(self):
         return 'Inverter-{}, {:>5.3f} kw, {:>7.3f} kwh, {} events'.format(
             self.mid, round(self.OutputPower,3), round(self.TotalOutputPower,3), len(self.events))
+
 
     def sync_with_hardware(self):
         time.sleep(random.randint(50,200)/1000)
@@ -86,52 +84,49 @@ class PVInverter(object):
                 self.alarm_code = current_code
             self.event_timestamp = time.time()
                 
+
         # measurement
-        self.kw = (random.randint(0,1000)/1000)
-        self.kwh += self.kw
-
-
-        self.OutputPower = random.randint(0,1000)
+        self.OutputPower = random.randint(0,1000) * 0.01
         self.ACVolPhaseA = random.randint(0,1000)
         self.ACVolPhaseB = random.randint(0,1000)
         self.ACVolPhaseC = random.randint(0,1000)
-        self.ACFrequency = random.randint(0,1000)
-        self.ACOutputCurrentA = random.randint(0,1000)
-        self.ACOutputCurrentB = random.randint(0,1000)
-        self.ACOutputCurrentC = random.randint(0,1000)
+        self.ACFrequency = 600 * 0.1
+        self.ACOutputCurrentA = random.randint(0,1000) * 0.1
+        self.ACOutputCurrentB = random.randint(0,1000) * 0.1
+        self.ACOutputCurrentC = random.randint(0,1000) * 0.1
         self.DC1InputVol = random.randint(0,1000)
         self.DC2InputVol = random.randint(0,1000)
-        self.DC1InputCurrent = random.randint(0,1000)
-        self.DC2InputCurrent = random.randint(0,1000)
+        self.DC1InputCurrent = random.randint(0,1000) * 0.1
+        self.DC2InputCurrent = random.randint(0,1000) * 0.1 
         self.DCBusPositiveVol = random.randint(0,1000)
         self.DCBusNegativeVol = random.randint(0,1000)
         self.InternalTemper = random.randint(0,1000)
         self.HeatSinkTemper = random.randint(0,1000)
-        self.InputPowerA = random.randint(0,1000)
-        self.InputPowerB = random.randint(0,1000)
-        self.TotalOutputPower = random.randint(0,1000)
+        self.InputPowerA = random.randint(0,1000) * 0.01
+        self.InputPowerB = random.randint(0,1000) * 0.01
+        self.TotalOutputPower += random.randint(0,10)
 
 
     def make_record(self):
         result = Measurement(self.mid, time.time())
-        result.OutputPower = self.OutputPower 
+        result.OutputPower = round(self.OutputPower, 2)
         result.ACVolPhaseA = self.ACVolPhaseA 
         result.ACVolPhaseB = self.ACVolPhaseB 
         result.ACVolPhaseC = self.ACVolPhaseC 
-        result.ACFrequency = self.ACFrequency 
-        result.ACOutputCurrentA = self.ACOutputCurrentA 
-        result.ACOutputCurrentB = self.ACOutputCurrentB 
-        result.ACOutputCurrentC = self.ACOutputCurrentC 
-        result.DC1InputVol = self.DC1InputVol 
-        result.DC2InputVol = self.DC2InputVol 
-        result.DC1InputCurrent = self.DC1InputCurrent 
-        result.DC2InputCurrent = self.DC2InputCurrent 
+        result.ACFrequency = round(self.ACFrequency, 1)
+        result.ACOutputCurrentA = round(self.ACOutputCurrentA, 1)
+        result.ACOutputCurrentB = round(self.ACOutputCurrentB, 1)
+        result.ACOutputCurrentC = round(self.ACOutputCurrentC, 1)
+        result.DC1InputVol = round(self.DC1InputVol, 1)
+        result.DC2InputVol = round(self.DC2InputVol, 1)
+        result.DC1InputCurrent = round(self.DC1InputCurrent, 1)
+        result.DC2InputCurrent = round(self.DC2InputCurrent, 1)
         result.DCBusPositiveVol = self.DCBusPositiveVol 
         result.DCBusNegativeVol = self.DCBusNegativeVol 
         result.InternalTemper = self.InternalTemper 
         result.HeatSinkTemper = self.HeatSinkTemper 
-        result.InputPowerA = self.InputPowerA 
-        result.InputPowerB = self.InputPowerB 
+        result.InputPowerA = round(self.InputPowerA, 2)
+        result.InputPowerB = round(self.InputPowerB, 2)
         result.TotalOutputPower = self.TotalOutputPower 
         return result
 
