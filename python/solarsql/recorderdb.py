@@ -40,217 +40,266 @@ class RecorderDB(threading.Thread):
         #self.create_temphour_table_if_not_exists()
 
 
+
         # initialize uploading uid
         self.init_event_uploading_uid()
         self.init_measure_uploading_uid()
         self.init_measurehour_uploading_uid()
 
+        self.verify_hourly_measurement_table()
 
-        self.check_measurehour_table()
+        self.informations()
+
+        self.operation_hourly_measurements()
 
 
 
         minutely_datetime = datetime.datetime.now()
         hourly_datetime = datetime.datetime.now()
         while True:
-            try:
-                #self.event_operation()
-                self.minutely_measurement_operation()
+            self.operation_events()
+            self.operation_minutely_measurements()
 
-                # every minute
-                if datetime.datetime.now().minute != minutely_datetime.minute:
-                    #print('Minutely {}'.format(datetime.datetime.now()))
-                    if datetime.datetime.now().minute % 5 == 0:
-                        print('Commit database')
-                        self.dbconn.commit()
-                    minutely_datetime = datetime.datetime.now()
+            # every minute
+            if datetime.datetime.now().minute != minutely_datetime.minute:
+                #print('Minutely {}'.format(datetime.datetime.now()))
 
-                # every hour
-                if datetime.datetime.now().hour != hourly_datetime.hour:
-                    #print('Hourly {}'.format(datetime.datetime.now()))
-                    self.hourly_measurement_generate()
-                    hourly_datetime = datetime.datetime.now()
+                # every 5 minute
+                if datetime.datetime.now().minute % 5 == 0:
 
-                time.sleep(3)
-            except Exception as ex:
-                print(repr(ex))
-                sys.exit()
+                    self.operation_hourly_measurements()
+
+                    print('Commit database')
+                    self.dbconn.commit()
+                minutely_datetime = datetime.datetime.now()
+
+            # every hour
+            if datetime.datetime.now().hour != hourly_datetime.hour:
+                #print('Hourly {}'.format(datetime.datetime.now()))
+                hourly_datetime = datetime.datetime.now()
+
+            time.sleep(3)
+
+    def informations(self):
+        c = self.dbconn.cursor()
+        c.execute("select count(uploaded) from event where uploaded = 1")
+        uploaded = c.fetchone()
+        c.execute("select count(uploaded) from event")
+        total = c.fetchone()
+        print('event table uploaded: {}/{}'.format(uploaded[0], total[0]))
+
+        c.execute("select count(uploaded) from measure where uploaded = 1")
+        uploaded = c.fetchone()
+        c.execute("select count(uploaded) from measure")
+        total = c.fetchone()
+        print('measure table uploaded: {}/{}'.format(uploaded[0], total[0]))
+
+        c.execute("select count(uploaded) from measurehour where uploaded = 1")
+        uploaded = c.fetchone()
+        c.execute("select count(uploaded) from measurehour")
+        total = c.fetchone()
+        print('measurehour table uploaded: {}/{}'.format(uploaded[0], total[0]))
 
 
-    def event_operation(self):
-        try:
-            # input to database
-            recs = []
-            while not self.ibus.event.empty():
-                rec = self.ibus.event.get()
-                recs.append(rec)
+    def input_events(self):
+        recs = []
+        while not self.ibus.event.empty():
+            rec = self.ibus.event.get()
+            recs.append(rec)
 
-            for rec in recs:
-                c = self.dbconn.cursor()
-                sql = "INSERT INTO event VALUES (NULL, ?, datetime(?, 'unixepoch', 'localtime'), ?, ?, ?, ?, 0)"
-                c.execute(sql, (rec.mid, rec.timestamp, rec.kind, rec.code, rec.stat, rec.onlinecount))
-
-
-            # output to upload
+        for rec in recs:
             c = self.dbconn.cursor()
-            sql = "select * from event where uid > ? limit 3"
-            c.execute(sql,(self.event_uploading_uid,))
-            rows = c.fetchall()
-            #[print(row) for row in rows]
-            
-            if rows[0]:
-                maxuid = rows[-1][0]
-                self.event_uploading_uid = maxuid
-                dbeventrows = [DBEventRow(r) for r in rows] # create objects
-                [self.obus.event.put(dbeventrow) for dbeventrow in dbeventrows] # output
-            print('event uploading uid: {}'.format(self.event_uploading_uid))
+            sql = "INSERT INTO event VALUES (NULL, ?, datetime(?, 'unixepoch', 'localtime'), ?, ?, ?, ?, 0)"
+            c.execute(sql, (rec.mid, rec.timestamp, rec.kind, rec.code, rec.stat, rec.onlinecount))
 
 
-            # feedback to database
-            uuids = []
-            while not self.fbbus.event.empty():
-                uuid = self.fbbus.event.get()
-                uuids.append(uuid)
-            
-            if uuids:
-                #print('uploaded uuids: {}'.format(uuids))
-                c = self.dbconn.cursor()
-                sql = "update event set uploaded = 1 where uid <= ?"
-                c.execute(sql, (max(uuids),))
-        except Exception as ex:
-            print('Exception in event_operation(), {}'.format(repr(ex)))
+    def output_events(self):
+        c = self.dbconn.cursor()
+        sql = "select * from event where uid > ? limit 10"
+        c.execute(sql,(self.event_uploading_uid,))
+        rows = c.fetchall()
+        #[print(row) for row in rows]
+        
+        if rows:
+            maxuid = rows[-1][0]
+            self.event_uploading_uid = maxuid
+            dbeventrows = [DBEventRow(r) for r in rows] # create objects
+            [self.obus.event.put(dbeventrow) for dbeventrow in dbeventrows] # output
+        #print('event uploading uid: {}'.format(self.event_uploading_uid))
 
 
-
-    def minutely_measurement_operation(self):
-        try:
-            # input to database
-            #print('input')
-            recs = []
-            while not self.ibus.measure.empty():
-                rec = self.ibus.measure.get()
-                recs.append(rec)
-
-            for rec in recs:
-                c = self.dbconn.cursor()
-                sql = "insert into measure values(NULL, ?, datetime(?, 'unixepoch', 'localtime'),?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,0)"
-                c.execute(sql, (
-                    rec.mid, rec.timestamp, 
-                    rec.OutputPower, 
-                    rec.ACVolPhaseA, rec.ACVolPhaseB, rec.ACVolPhaseC,
-                    rec.ACFrequency,
-                    rec.ACOutputCurrentA, rec.ACOutputCurrentB, rec.ACOutputCurrentC,
-                    rec.DC1InputVol, rec.DC2InputVol,
-                    rec.DC1InputCurrent, rec.DC2InputCurrent,
-                    rec.DCBusPositiveVol, rec.DCBusNegativeVol,
-                    rec.InternalTemper, rec.HeatSinkTemper,
-                    rec.InputPowerA, rec.InputPowerB,
-                    rec.TotalOutputPower))
-
-
-            # output to upload
-            #print('output')
+    def feedback_events(self):
+        uuids = []
+        while not self.fbbus.event.empty():
+            uuid = self.fbbus.event.get()
+            uuids.append(uuid)
+        
+        if uuids:
+            #print('event feedback uuids: {}'.format(uuids))
             c = self.dbconn.cursor()
-            sql = "select * from measure where uid > ? limit 3"
-            c.execute(sql,(self.measure_uploading_uid,))
-            rows = c.fetchall()
-            #[print(row) for row in rows]
-            
-            # if nothing get ???
-            if rows:
-                maxuid = rows[-1][0]
-                self.measure_uploading_uid = maxuid
-                dbmeasurerows = [DBMeasureRow(r) for r in rows] # create objects
-                [self.obus.measure.put(dbmeasurerow) for dbmeasurerow in dbmeasurerows] # output
-            #print('measure uploading uid: {}'.format(self.measure_uploading_uid))
+            sql = "update event set uploaded = 1 where uid <= ?"
+            c.execute(sql, (max(uuids),))
 
 
-            # feedback to database
-            #print('feedback')
-            uuids = []
-            while not self.fbbus.measure.empty():
-                uuid = self.fbbus.measure.get()
-                uuids.append(uuid)
-            
-            if uuids:
-                #print('uploaded uuids: {}'.format(uuids))
-                c = self.dbconn.cursor()
-                sql = "update measure set uploaded = 1 where uid <= ?"
-                c.execute(sql, (max(uuids),))
-        except Exception as ex:
-            print('Exception in minutely_operation(), {}'.format(repr(ex)))
+    def operation_events(self):
+        self.input_events()
+        self.output_events()
+        self.feedback_events()
 
 
-    def hourly_measurement_generate(self):
-        try:
-            now = datetime.datetime.now()
-            since = '{:0=4}-{:0=2}-{:0=2} {:0=2}:00:00'.format(now.year, now.month, now.day, now.hour)
-            to    = '{:0=4}-{:0=2}-{:0=2} {:0=2}:59:59'.format(now.year, now.month, now.day, now.hour)
+    def input_minutely_measurements(self):
+        recs = []
+        while not self.ibus.measure.empty():
+            rec = self.ibus.measure.get()
+            recs.append(rec)
 
-            self.insert_one_hourly_record(since, to, 1)
+        for rec in recs:
+            c = self.dbconn.cursor()
+            sql = "insert into measure values(NULL, ?, datetime(?, 'unixepoch', 'localtime'),?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,0)"
+            c.execute(sql, (
+                rec.mid, rec.timestamp, 
+                rec.OutputPower, 
+                rec.ACVolPhaseA, rec.ACVolPhaseB, rec.ACVolPhaseC,
+                rec.ACFrequency,
+                rec.ACOutputCurrentA, rec.ACOutputCurrentB, rec.ACOutputCurrentC,
+                rec.DC1InputVol, rec.DC2InputVol,
+                rec.DC1InputCurrent, rec.DC2InputCurrent,
+                rec.DCBusPositiveVol, rec.DCBusNegativeVol,
+                rec.InternalTemper, rec.HeatSinkTemper,
+                rec.InputPowerA, rec.InputPowerB,
+                rec.TotalOutputPower))
 
-            print('Commit database')
-            self.dbconn.commit()
-        except Exception as ex:
-            print('Exception in hourly_measurement_generate(), {}'.format(repr(ex)))
+
+    def output_minutely_measurements(self):
+        c = self.dbconn.cursor()
+        sql = "select * from measure where uid > ? limit 3"
+        c.execute(sql,(self.measure_uploading_uid,))
+        rows = c.fetchall()
+        #[print(row) for row in rows]
+        
+        # if nothing get ???
+        if rows:
+            maxuid = rows[-1][0]
+            self.measure_uploading_uid = maxuid
+            records = [DBMeasureRow(r) for r in rows] # create objects
+            [self.obus.measure.put(record) for record in records] # output
+        #print('measure uploading uid: {}'.format(self.measure_uploading_uid))
+
+
+    def feedback_minutely_measurements(self):
+        uuids = []
+        while not self.fbbus.measure.empty():
+            uuid = self.fbbus.measure.get()
+            uuids.append(uuid)
+        
+        if uuids:
+            #print('uploaded uuids: {}'.format(uuids))
+            c = self.dbconn.cursor()
+            sql = "update measure set uploaded = 1 where uid <= ?"
+            c.execute(sql, (max(uuids),))
+
+
+    def operation_minutely_measurements(self):
+        self.input_minutely_measurements()
+        self.output_minutely_measurements()
+        self.feedback_minutely_measurements()
+
+    def operation_hourly_measurements(self):
+        self.input_hourly_measurements()
+        self.output_hourly_measurements()
+        self.feedback_hourly_measurements()
+
+
+    def input_hourly_measurements(self):
+        now = datetime.datetime.now()
+        dt = datetime.datetime.now() - datetime.timedelta(hours=1)
+        since = '{:0=4}-{:0=2}-{:0=2} {:0=2}:00:00'.format(dt.year, dt.month, dt.day, dt.hour)
+        to    = '{:0=4}-{:0=2}-{:0=2} {:0=2}:59:59'.format(dt.year, dt.month, dt.day, dt.hour)
+
+        if self.is_hourly_row_exist(since):
+            #print('{} exist, skip'.format(since))
+            return 
+
+        mids = self.get_mids(since, to)
+        #print('mids: {}, {}, {}'.format(mids, since, to))
+        for mid in mids:
+            self.insert_one_hourly_record(since, to, mid)
+
+        print('Commit database')
+        self.dbconn.commit()
+
+
+    def output_hourly_measurements(self):
+        c = self.dbconn.cursor()
+        sql = "select * from measurehour where uid > ? limit 3"
+        c.execute(sql,(self.measurehour_uploading_uid,))
+        rows = c.fetchall()
+        #[print(row) for row in rows]
+        
+        if rows:
+            maxuid = rows[-1][0]
+            self.measurehour_uploading_uid = maxuid
+            records = [DBMeasureHourRow(r) for r in rows] # create objects
+            [self.obus.measurehour.put(record) for record in records] # output
+
+
+    def feedback_hourly_measurements(self):
+        uuids = []
+        while not self.fbbus.measurehour.empty():
+            uuid = self.fbbus.measurehour.get()
+            uuids.append(uuid)
+        
+        if uuids:
+            #print('uploaded uuids: {}'.format(uuids))
+            c = self.dbconn.cursor()
+            sql = "update measurehour set uploaded = 1 where uid <= ?"
+            c.execute(sql, (max(uuids),))
 
 
 
     def get_oldest_datetime_from_minute_table(self):
-        try:
-            c = self.dbconn.cursor()
-            sql = "select min(datetime) from measure"
-            c.execute(sql)
-            r = c.fetchone()
-            timestring = r[0]
-            return datetime.datetime.strptime(timestring, '%Y-%m-%d %H:%M:%S')
-        except Exception as ex:
-            print('Exception in get_oldest_minute_timestring(), {}'.format(repr(ex)))
+        c = self.dbconn.cursor()
+        sql = "select min(datetime) from measure"
+        c.execute(sql)
+        r = c.fetchone()
+        timestring = r[0]
+        return datetime.datetime.strptime(timestring, '%Y-%m-%d %H:%M:%S')
         
 
     def get_newest_datetime_from_minute_table(self):
-        try:
-            c = self.dbconn.cursor()
-            sql = "select max(datetime) from measure"
-            c.execute(sql)
-            r = c.fetchone()
-            timestring = r[0]
-            return datetime.datetime.strptime(timestring, '%Y-%m-%d %H:%M:%S')
-        except Exception as ex:
-            print('Exception in get_newest_minute_timestring(), {}'.format(repr(ex)))
+        c = self.dbconn.cursor()
+        sql = "select max(datetime) from measure"
+        c.execute(sql)
+        r = c.fetchone()
+        timestring = r[0]
+        return datetime.datetime.strptime(timestring, '%Y-%m-%d %H:%M:%S')
 
 
     def get_hourly_datetimes(self):
-        try:
-            c = self.dbconn.cursor()
-            sql = "select distinct(datetime) from measurehour"
-            c.execute(sql)
-            rows = c.fetchall()
-            hourlyrecords = [r[0] for r in rows]
-            #[print(hr) for hr in hourlyrecords]
-            return hourlyrecords
-        except Exception as ex:
-            print('Exception in get_hourly_datetimes(), {}'.format(repr(ex)))
+        c = self.dbconn.cursor()
+        sql = "select distinct(datetime) from measurehour"
+        c.execute(sql)
+        rows = c.fetchall()
+        hourlyrecords = [r[0] for r in rows]
+        #[print(hr) for hr in hourlyrecords]
+        return hourlyrecords
     
 
     def is_hourly_row_exist(self, timestring):
-        try:
-            c = self.dbconn.cursor()
-            sql = "select * from measurehour where datetime == ?"
-            c.execute(sql, (timestring,))
-            rows = c.fetchall()
-            #print('rows: {}'.format(rows))
-            return bool(rows)
-        except Exception as ex:
-            print('Exception in is_hourly_row_exist(), {}'.format(repr(ex)))
+        c = self.dbconn.cursor()
+        sql = "select * from measurehour where datetime == ?"
+        c.execute(sql, (timestring,))
+        rows = c.fetchall()
+        #print('rows: {}'.format(rows))
+        return bool(rows)
 
 
     def get_last_kwh(self, timestring, mid):
         #print(timestring)
 
         c = self.dbconn.cursor()
-        sql = "select max(datetime), TotalOutputPower from measurehour where mid == ? and datetime < ?"
-        c.execute(sql, (1, timestring,))
+        sql = "select max(datetime), TotalOutputPower from measurehour where datetime < ? and mid == ?"
+        c.execute(sql, (timestring, mid))
         row = c.fetchone()
         #print('last kwh: {}'.format(row))
         return row[1]
@@ -269,7 +318,7 @@ class RecorderDB(threading.Thread):
                  avg(InputPowerA), avg(InputPowerB),
                  max(TotalOutputPower)
                  from measure where datetime between ? and ? and mid == ?""" 
-        c.execute(sql,(since, to, '1'))
+        c.execute(sql,(since, to, mid))
         avgrow = c.fetchone()
 
         if not avgrow[0]:
@@ -282,15 +331,15 @@ class RecorderDB(threading.Thread):
         return fullrow
 
 
-    def check_measurehour_table(self):
+    def verify_hourly_measurement_table(self):
 
         oldest = self.get_oldest_datetime_from_minute_table()
-        print('oldest: {}'.format(oldest))
+        #print('oldest: {}'.format(oldest))
         if not oldest: 
             return
 
         newest = self.get_newest_datetime_from_minute_table()
-        print('newest: {}'.format(newest))
+        #print('newest: {}'.format(newest))
         if not newest: 
             return
 
@@ -299,8 +348,8 @@ class RecorderDB(threading.Thread):
 
         oldest_hour = datetime.datetime(oldest.year, oldest.month, oldest.day, oldest.hour)
         newest_hour = datetime.datetime(newest.year, newest.month, newest.day, newest.hour) - datetime.timedelta(hours=1)
-        print('oldest hour: {}'.format(oldest_hour))
-        print('newest hour: {}'.format(newest_hour))
+        #print('oldest hour: {}'.format(oldest_hour))
+        #print('newest hour: {}'.format(newest_hour))
         dt = oldest_hour 
         h = 0
         while dt < newest_hour:
@@ -310,16 +359,28 @@ class RecorderDB(threading.Thread):
             h += 1
 
             if self.is_hourly_row_exist(since):
-                print('{} exist, skip'.format(since))
+                #print('{} exist, skip'.format(since))
                 continue
 
-            self.insert_one_hourly_record(since, to, 1)
+            mids = self.get_mids(since, to)
+            #print('mids: {}, {}, {}'.format(mids, since, to))
+            for mid in mids:
+                self.insert_one_hourly_record(since, to, mid)
+
         self.dbconn.commit()
+
+    def get_mids(self, since, to):
+        c = self.dbconn.cursor()
+        sql = "select distinct(mid) from measure where datetime between ? and ?"
+        c.execute(sql,(since, to))
+        rows = c.fetchall()
+        result = [row[0] for row in rows]
+        return result 
 
 
     def insert_one_hourly_record(self, since, to, mid):
-        row = self.generate_avg_measurement(since, to, 1)
-        prevkwh = self.get_last_kwh(since, 1)
+        row = self.generate_avg_measurement(since, to, mid)
+        prevkwh = self.get_last_kwh(since, mid)
         if not prevkwh:
             prevkwh = 0
 
@@ -471,18 +532,10 @@ class DBEventRow(object):
         self.uid = row[0]
         self.mid = row[1]
         self.timestring = row[2]
-        self.kind = row[3]
-        self.code = row[4]
-        self.stat = row[5]
-        self.onlinecount = row[6]
-
-class DBMeasureRow_bkp(object):
-    def __init__(self, row):
-        self.uid = row[0]
-        self.mid = row[1]
-        self.timestring = row[2]
-        self.kw = row[3]
-        self.kwh = row[4]
+        self.event_type = row[3]
+        self.event_index = row[4]
+        self.event_parameter = row[5]
+        self.inverter_good = row[6]
 
 
 class DBMeasureRow(object):
@@ -510,6 +563,33 @@ class DBMeasureRow(object):
         self.InputPowerB = row[20]
         self.TotalOutputPower = row[21]
 
+
+class DBMeasureHourRow(object):
+    def __init__(self, row):
+        self.uid = row[0]
+        self.mid = row[1]
+        self.timestring = row[2]
+        self.OutputPower = row[3]
+        self.ACVolPhaseA = row[4]
+        self.ACVolPhaseB = row[5]
+        self.ACVolPhaseC = row[6]
+        self.ACFrequency = row[7]
+        self.ACOutputCurrentA = row[8]
+        self.ACOutputCurrentB = row[9]
+        self.ACOutputCurrentC = row[10]
+        self.DC1InputVol = row[11]
+        self.DC2InputVol = row[12]
+        self.DC1InputCurrent = row[13]
+        self.DC2InputCurrent = row[14]
+        self.DCBusPositiveVol = row[15]
+        self.DCBusNegativeVol = row[16]
+        self.InternalTemper = row[17]
+        self.HeatSinkTemper = row[18]
+        self.InputPowerA = row[19]
+        self.InputPowerB = row[20]
+        self.TotalOutputPower = row[21]
+        self.PrevTotalOutputPower = row[22]
+        self.DiffTotalOutputPower = row[23]
 
 if __name__ == '__main__':
 

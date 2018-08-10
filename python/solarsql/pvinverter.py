@@ -31,7 +31,7 @@ class Measurement(object):
 
     def __str__(self):
         ts = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(self.timestamp))
-        return '{}, {}, {} kw, ..., {} kwh'.format(self.mid, ts, round(self.OutputPower,3), round(self.TotalOutputPower,3))
+        return '{}, {}, ..., {} kwh'.format(self.mid, ts, round(self.TotalOutputPower,3))
 
 
 class PVInverter(object):
@@ -68,8 +68,7 @@ class PVInverter(object):
 
 
     def __str__(self):
-        return 'Inverter-{}, {:>5.3f} kw, {:>7.3f} kwh, {} events'.format(
-            self.mid, round(self.OutputPower,3), round(self.TotalOutputPower,3), len(self.events))
+        return 'Inverter-{}, {} kwh, {} events'.format(self.mid, round(self.TotalOutputPower,3), len(self.events))
 
 
     def sync_with_hardware(self):

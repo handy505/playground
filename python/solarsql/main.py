@@ -13,8 +13,11 @@ class Bus(object):
     def __init__(self):
         self.event = queue.Queue()
         self.measure = queue.Queue()
+        self.measurehour = queue.Queue()
         self.illu = queue.Queue()
+        self.illuhour = queue.Queue()
         self.temp = queue.Queue()
+        self.temphour = queue.Queue()
 
 def main():
 
