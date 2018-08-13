@@ -38,6 +38,11 @@ class Uploader(threading.Thread):
         self.target_url = 'http://59.127.196.135/DataStorage/DataStorage.ashx?psid={}'.format(psid)
 
         
+        self.event_rows = []
+        self.measurement_rows = []
+        self.hourly_measurement_rows = []
+
+
         minutely_datetime = datetime.datetime.now()
 
         while True:
@@ -54,57 +59,65 @@ class Uploader(threading.Thread):
 
 
     def uploading_hourly_measurements(self):
-        rows = []
-        while not self.ibus.measurehour.empty():
-            row = self.ibus.measurehour.get()
-            rows.append(row)
+        if not self.hourly_measurement_rows:
+            while not self.ibus.measurehour.empty():
+                row = self.ibus.measurehour.get()
+                self.hourly_measurement_rows.append(row)
 
-        if rows:
-            jsonstr = self.make_hour_jsonstr(rows)
+        if self.hourly_measurement_rows:
+            jsonstr = self.make_hour_jsonstr(self.hourly_measurement_rows)
             poststr = 'InverterDataH@{}'.format(jsonstr)
             resp = requests.post(self.target_url, data=poststr)
             (ruid, ms) = resp.text.split(',')
             print('hourly measurement resp: {}'.format(ruid))
-            if ruid:
+            expect_ruid = self.hourly_measurement_rows[-1].uid
+            #print('expect ruid: {}'.format(expect_ruid))
+            if int(ruid) == expect_ruid:
                 self.obus.measurehour.put(ruid)
+                self.hourly_measurement_rows.clear()
             else:
                 print('Uploading fail, how to do this ???')
                 sys.exit()
 
 
     def uploading_measurements(self):
-        rows = []
-        while not self.ibus.measure.empty():
-            row = self.ibus.measure.get()
-            rows.append(row)
+        if not self.measurement_rows:
+            while not self.ibus.measure.empty():
+                row = self.ibus.measure.get()
+                self.measurement_rows.append(row)
 
-        if rows:
-            jsonstr = self.make_minute_jsonstr(rows)
+
+        if self.measurement_rows:
+            jsonstr = self.make_minute_jsonstr(self.measurement_rows)
             poststr = 'InverterData@{}'.format(jsonstr)
             resp = requests.post(self.target_url, data=poststr)
             (ruid, ms) = resp.text.split(',')
             print('measurement resp: {}'.format(ruid))
-            if ruid:
+            expect_ruid = self.measurement_rows[-1].uid
+            if int(ruid) == expect_ruid:
                 self.obus.measure.put(ruid)
+                self.measurement_rows.clear()
             else:
                 print('Uploading fail, how to do this ???')
                 sys.exit()
 
 
     def uploading_events(self):
-        rows = []
-        while not self.ibus.event.empty():
-            row = self.ibus.event.get()
-            rows.append(row)
+        if not self.event_rows:
+            while not self.ibus.event.empty():
+                row = self.ibus.event.get()
+                self.event_rows.append(row)
 
-        if rows:
-            jsonstr = self.make_event_jsonstr(rows)
+        if self.event_rows:
+            jsonstr = self.make_event_jsonstr(self.event_rows)
             poststr = "EventData@{}".format(jsonstr)
             resp = requests.post(self.target_url, data=poststr)
             (ruid, ms) = resp.text.split(',')
             print('event resp: {}'.format(ruid))
-            if ruid:
+            expect_ruid = self.event_rows[-1].uid
+            if int(ruid) == expect_ruid:
                 self.obus.event.put(ruid)
+                self.event_rows.clear()
             else:
                 print('Uploading fail, how to do this ???')
                 sys.exit()
@@ -116,7 +129,6 @@ class Uploader(threading.Thread):
         resp = requests.post(self.target_url, data=poststr)
         (ruid, ms) = resp.text.split(',')
         print('status resp: {}, {}'.format(ruid, ms))
-
 
 
 
