@@ -82,21 +82,21 @@ class RecorderDB(threading.Thread):
 
     def informations(self):
         c = self.dbconn.cursor()
-        c.execute("select count(uploaded) from event where uploaded = 1")
+        c.execute("select max(uid) from event where uploaded = 1")
         uploaded = c.fetchone()
-        c.execute("select count(uploaded) from event")
+        c.execute("select max(uid) from event")
         total = c.fetchone()
         print('event table uploaded: {}/{}'.format(uploaded[0], total[0]))
 
-        c.execute("select count(uploaded) from measure where uploaded = 1")
+        c.execute("select max(uid) from measure where uploaded = 1")
         uploaded = c.fetchone()
-        c.execute("select count(uploaded) from measure")
+        c.execute("select max(uid) from measure")
         total = c.fetchone()
         print('measure table uploaded: {}/{}'.format(uploaded[0], total[0]))
 
-        c.execute("select count(uploaded) from measurehour where uploaded = 1")
+        c.execute("select max(uid) from measurehour where uploaded = 1")
         uploaded = c.fetchone()
-        c.execute("select count(uploaded) from measurehour")
+        c.execute("select max(uid) from measurehour")
         total = c.fetchone()
         print('measurehour table uploaded: {}/{}'.format(uploaded[0], total[0]))
 
@@ -490,7 +490,7 @@ class RecorderDB(threading.Thread):
             self.event_uploading_uid = r[0]
         else:
             self.event_uploading_uid = 0
-        print('Init event uploading uid: {}'.format(self.event_uploading_uid))
+        #print('Init event uploading uid: {}'.format(self.event_uploading_uid))
 
 
     def init_measure_uploading_uid(self):
@@ -502,7 +502,7 @@ class RecorderDB(threading.Thread):
             self.measure_uploading_uid = r[0]
         else:    
             self.measure_uploading_uid = 0
-        print('Init measure uploading uid: {}'.format(self.measure_uploading_uid))
+        #print('Init measure uploading uid: {}'.format(self.measure_uploading_uid))
 
 
     def init_measurehour_uploading_uid(self):
@@ -514,7 +514,7 @@ class RecorderDB(threading.Thread):
             self.measurehour_uploading_uid = r[0]
         else:    
             self.measurehour_uploading_uid = 0
-        print('Init measurehour uploading uid: {}'.format(self.measurehour_uploading_uid))
+        #print('Init measurehour uploading uid: {}'.format(self.measurehour_uploading_uid))
 
 
 
