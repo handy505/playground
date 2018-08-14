@@ -7,6 +7,7 @@ import sys
 import collector
 import recorderdb
 import uploader
+import hearbeat
 
 
 class Bus(object):
@@ -28,14 +29,17 @@ def main():
     ct = collector.Collector(abus)
     rt = recorderdb.RecorderDB(abus, bbus, cbus)
     ut = uploader.Uploader(bbus, cbus)
+    ht = hearbeat.Hearbeat()
 
     ct.start()
     rt.start()
     ut.start()
+    ht.start()
 
     ct.join()
     rt.join()
     ut.join()
+    ht.join()
 
 
 if __name__ == '__main__':

@@ -46,14 +46,17 @@ class Uploader(threading.Thread):
         minutely_datetime = datetime.datetime.now()
 
         while True:
-            self.uploading_events()
-            self.uploading_measurements()
-            self.uploading_hourly_measurements()
+            try:
+                self.uploading_events()
+                self.uploading_measurements()
+                self.uploading_hourly_measurements()
 
 
-            if datetime.datetime.now().minute != minutely_datetime.minute:
-                self.uploading_status()
-                minutely_datetime = datetime.datetime.now()
+                if datetime.datetime.now().minute != minutely_datetime.minute:
+                    self.uploading_status()
+                    minutely_datetime = datetime.datetime.now()
+            except requests.exceptions.ConnectionError as ex:
+                print('exception: {}'.format(repr(ex)))
 
             time.sleep(1)
 

@@ -517,16 +517,6 @@ class RecorderDB(threading.Thread):
         #print('Init measurehour uploading uid: {}'.format(self.measurehour_uploading_uid))
 
 
-
-def machine_ids(dbconn):
-    # get how many machine id in database
-    sql = "select distinct mid from measure"
-    c.execute(sql)
-    rows = c.fetchall()
-    machines = [r[0] for r in rows]
-    print(machines)
-
-
 class DBEventRow(object):
     def __init__(self, row):
         self.uid = row[0]
