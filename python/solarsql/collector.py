@@ -8,6 +8,7 @@ import datetime
 import recorderdb
 import event
 import pvinverter
+import meter
 
 class Collector(threading.Thread):
     def __init__(self, obus):
@@ -19,6 +20,10 @@ class Collector(threading.Thread):
     
         pvgroup = [pvinverter.PVInverter(i) for i in range(1,3)]
         [print(pv) for pv in pvgroup]
+
+
+        imeter = meter.DCBoxMeter(id=10, port=None, brand='DCBox', type='illu')
+        tmeter = meter.DCBoxMeter(id=11, port=None, brand='DCBox', type='temp')
 
 
         minutely_datetime = datetime.datetime.now()
@@ -42,6 +47,18 @@ class Collector(threading.Thread):
                     r = pv.make_record()
                     print('Generate new measurement: {}'.format(r))
                     self.obus.measure.put(r)
+
+
+                r = imeter.read()
+                print('Generate new illu: {}'.format(r))
+                self.obus.illu.put(r)
+
+
+                r = tmeter.read()
+                print('Generate new temp: {}'.format(r))
+                self.obus.temp.put(r)
+
+
                 minutely_datetime = datetime.datetime.now()
 
             time.sleep(1)

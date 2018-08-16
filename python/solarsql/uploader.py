@@ -36,29 +36,123 @@ class Uploader(threading.Thread):
         psid = get_psid()
         print('psid: {}'.format(psid))
         self.target_url = 'http://59.127.196.135/DataStorage/DataStorage.ashx?psid={}'.format(psid)
-
         
         self.event_rows = []
         self.measurement_rows = []
         self.hourly_measurement_rows = []
-
+        self.illu_rows = []
+        self.illuhour_rows = []
+        self.temp_rows = []
+        self.temphour_rows = []
 
         minutely_datetime = datetime.datetime.now()
-
         while True:
             try:
                 self.uploading_events()
                 self.uploading_measurements()
                 self.uploading_hourly_measurements()
-
+                self.uploading_illu()
+                self.uploading_illuhour()
+                self.uploading_temp()
+                self.uploading_temphour()
 
                 if datetime.datetime.now().minute != minutely_datetime.minute:
                     self.uploading_status()
                     minutely_datetime = datetime.datetime.now()
+
             except requests.exceptions.ConnectionError as ex:
                 print('exception: {}'.format(repr(ex)))
 
             time.sleep(1)
+
+
+    def uploading_illu(self):
+        if not self.illu_rows:
+            while not self.ibus.illu.empty():
+                row = self.ibus.illu.get()
+                self.illu_rows.append(row)
+
+        if self.illu_rows:
+            jsonstr = self.make_illu_jsonstr(self.illu_rows)
+            poststr = 'IlluminationData@{}'.format(jsonstr)
+            resp = requests.post(self.target_url, data=poststr)
+            (ruid, ms) = resp.text.split(',')
+            print('uploaded illu: {}'.format(ruid))
+            expect_ruid = self.illu_rows[-1].uid
+            if int(ruid) == expect_ruid:
+                self.obus.illu.put(ruid)
+                self.illu_rows.clear()
+            else:
+                print('Uploading fail, how to do this ???')
+                sys.exit()
+        
+
+    def uploading_illuhour(self):
+        if not self.illuhour_rows:
+            while not self.ibus.illuhour.empty():
+                row = self.ibus.illuhour.get()
+                self.illuhour_rows.append(row)
+
+        if self.illuhour_rows:
+            jsonstr = self.make_illuhour_jsonstr(self.illuhour_rows)
+            poststr = 'IlluminationDataH@{}'.format(jsonstr)
+            resp = requests.post(self.target_url, data=poststr)
+            (ruid, ms) = resp.text.split(',')
+            print('uploaded illuhour: {}'.format(ruid))
+            expect_ruid = self.illuhour_rows[-1].uid
+            if int(ruid) == expect_ruid:
+                self.obus.illuhour.put(ruid)
+                self.illuhour_rows.clear()
+            else:
+                print('Uploading fail, how to do this ???')
+                sys.exit()
+
+
+    def uploading_temp(self):
+        if not self.temp_rows:
+            while not self.ibus.temp.empty():
+                row = self.ibus.temp.get()
+                self.temp_rows.append(row)
+
+        if self.temp_rows:
+            jsonstr = self.make_illu_jsonstr(self.temp_rows)
+            poststr = 'TemperatureData@{}'.format(jsonstr)
+            resp = requests.post(self.target_url, data=poststr)
+            (ruid, ms) = resp.text.split(',')
+            print('uploaded temp: {}'.format(ruid))
+            expect_ruid = self.temp_rows[-1].uid
+            if int(ruid) == expect_ruid:
+                self.obus.temp.put(ruid)
+                self.temp_rows.clear()
+            else:
+                print('Uploading fail, how to do this ???')
+                sys.exit()
+        
+
+    def uploading_temphour(self):
+        if not self.temphour_rows:
+            while not self.ibus.temphour.empty():
+                row = self.ibus.temphour.get()
+                self.temphour_rows.append(row)
+
+        if self.temphour_rows:
+            jsonstr = self.make_illuhour_jsonstr(self.temphour_rows)
+            poststr = 'TemperatureDataH@{}'.format(jsonstr)
+            resp = requests.post(self.target_url, data=poststr)
+            (ruid, ms) = resp.text.split(',')
+            print('uploaded temphour: {}'.format(ruid))
+            expect_ruid = self.temphour_rows[-1].uid
+            if int(ruid) == expect_ruid:
+                self.obus.temphour.put(ruid)
+                self.temphour_rows.clear()
+            else:
+                print('Uploading fail, how to do this ???')
+                sys.exit()
+
+
+
+
+
 
 
     def uploading_hourly_measurements(self):
@@ -72,7 +166,8 @@ class Uploader(threading.Thread):
             poststr = 'InverterDataH@{}'.format(jsonstr)
             resp = requests.post(self.target_url, data=poststr)
             (ruid, ms) = resp.text.split(',')
-            print('hourly measurement resp: {}'.format(ruid))
+            #print('hourly measurement resp: {}'.format(ruid))
+            print('uploaded hourly measurement: {}'.format(ruid))
             expect_ruid = self.hourly_measurement_rows[-1].uid
             #print('expect ruid: {}'.format(expect_ruid))
             if int(ruid) == expect_ruid:
@@ -95,7 +190,8 @@ class Uploader(threading.Thread):
             poststr = 'InverterData@{}'.format(jsonstr)
             resp = requests.post(self.target_url, data=poststr)
             (ruid, ms) = resp.text.split(',')
-            print('measurement resp: {}'.format(ruid))
+            #print('measurement resp: {}'.format(ruid))
+            print('uploaded measurement: {}'.format(ruid))
             expect_ruid = self.measurement_rows[-1].uid
             if int(ruid) == expect_ruid:
                 self.obus.measure.put(ruid)
@@ -116,7 +212,8 @@ class Uploader(threading.Thread):
             poststr = "EventData@{}".format(jsonstr)
             resp = requests.post(self.target_url, data=poststr)
             (ruid, ms) = resp.text.split(',')
-            print('event resp: {}'.format(ruid))
+            #print('event resp: {}'.format(ruid))
+            print('uploaded event: {}'.format(ruid))
             expect_ruid = self.event_rows[-1].uid
             if int(ruid) == expect_ruid:
                 self.obus.event.put(ruid)
@@ -131,7 +228,8 @@ class Uploader(threading.Thread):
         poststr = 'StatusData@[{}]'.format(jsonstr)
         resp = requests.post(self.target_url, data=poststr)
         (ruid, ms) = resp.text.split(',')
-        print('status resp: {}, {}'.format(ruid, ms))
+        #print('status resp: {}, {}'.format(ruid, ms))
+        print('uploaded status: {}, {}'.format(ruid, ms))
 
 
 
@@ -146,6 +244,58 @@ class Uploader(threading.Thread):
         d["Offline"] = 2
         jsonstr = json.dumps(d)
         return jsonstr 
+
+    def make_illu_jsonstr(self, rows):
+        records = []
+        for row in rows:
+            d = collections.OrderedDict()
+            d["UniqueID"] = row.uid
+            d["DeviceID"] = row.mid
+            d["LogTime"] = row.timestring
+            d["Illumination"] = row.value
+            records.append(d)
+        result = json.dumps(records)
+        return result
+
+
+    def make_illuhour_jsonstr(self, rows):
+        records = []
+        for row in rows:
+            d = collections.OrderedDict()
+            d["UniqueID"] = row.uid
+            d["DeviceID"] = row.mid
+            d["LogTime"] = row.timestring
+            d["Illumination"] = row.value
+            records.append(d)
+        result = json.dumps(records)
+        return result
+
+
+    def make_temp_jsonstr(self, rows):
+        records = []
+        for row in rows:
+            d = collections.OrderedDict()
+            d["UniqueID"] = row.uid
+            d["DeviceID"] = row.mid
+            d["LogTime"] = row.timestring
+            d["Temperature"] = row.value
+            records.append(d)
+        result = json.dumps(records)
+        return result
+
+
+    def make_temphour_jsonstr(self, rows):
+        records = []
+        for row in rows:
+            d = collections.OrderedDict()
+            d["UniqueID"] = row.uid
+            d["DeviceID"] = row.mid
+            d["LogTime"] = row.timestring
+            d["Temperature"] = row.value
+            records.append(d)
+        result = json.dumps(records)
+        return result
+
 
 
     def make_event_jsonstr(self, rows):
