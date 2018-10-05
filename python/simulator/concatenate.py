@@ -11,7 +11,8 @@ class ConcatThread(threading.Thread):
         self.pvgroup = pvgroup
         self.imeter = imeter
         self.tmeter = tmeter
-        self.ser = serial.Serial(port='/dev/ttyUSB1', baudrate=9600)
+        #self.ser = serial.Serial(port='/dev/ttyUSB1', baudrate=9600)
+        self.ser = serial.Serial(port='/dev/ttyUSB0', baudrate=9600)
         self.looping = True
 
 
@@ -42,8 +43,8 @@ class ConcatThread(threading.Thread):
 
 
     def processing(self, rxpacket):
-        #s = ' '.join(['{:02x}'.format(b) for b in rxpacket]) # debug
-        #print('{:.3f}: {}'.format(time.time(), s))
+        s = ' '.join(['{:02x}'.format(b) for b in rxpacket]) # debug
+        print('{:.3f}: {}'.format(time.time(), s))
 
         #for i, pv in enumerate(self.pvgroup.pool):
         for i, pv in enumerate(self.pvgroup):

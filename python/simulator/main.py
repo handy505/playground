@@ -27,18 +27,21 @@ class JbusDevice(object):
 
             # id check
             if slavenumber != self.id:
-                print('ID error')
+                #print('ID error')
                 return None
             # crc check
             if not crc.check_crc16(querypacket):
-                print('CRC error')
+                #print('CRC error')
+                return None
+            if functioncode != 3:
+                print('Not support function code {}'.format(functioncode))
                 return None
             # address check
             if not address >= self.mm.start_address:
-                print('address error')
+                #print('address error')
                 return None
             if not ((address+wordlength) <= self.mm.end_address):
-                print('address error')
+                #print('address error')
                 return None
 
             # prepare response
@@ -88,7 +91,7 @@ class DCBoxTempMeter(JbusDevice):
 class Inverter(JbusDevice):
     def __init__(self, id):
         super().__init__(id)
-        self.mm = memorymapping.MemoryMapping(0xc000, 0xc041)
+        self.mm = memorymapping.MemoryMapping(0xc000, 0xc060)
 
     def __str__(self):
         kw = self.mm.read(0xc020)
@@ -103,11 +106,12 @@ class Inverter(JbusDevice):
     def refresh(self):
         with self.lock:
 
-            value = random.randint(100,200)
+            '''value = random.randint(100,200)
             self.mm.write(0xc010, value)
 
             value = random.randint(200,300)
             self.mm.write(0xc011, value)
+            '''
 
             kw = random.randint(0,10)
             self.mm.write(0xc020, kw)
@@ -130,6 +134,7 @@ class MainThread(threading.Thread):
         self.invgroup = []
         for id in range(1, 3):
             inv = Inverter(id)
+            print(inv)
             self.invgroup.append(inv)
 
         self.imeter = DCBoxIlluMeter(11)
@@ -154,7 +159,7 @@ class MainThread(threading.Thread):
                 self.tmeter.refresh()
 
                 dt = datetime.datetime.fromtimestamp(now)
-                print('Refresh at {}'.format(dt))
+                #print('Refresh at {}'.format(dt))
                 refresh_timestamp = now
 
             
