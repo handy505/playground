@@ -16,7 +16,7 @@ class MemoryMapping(object):
         self.memory = bytearray(byteslength)
 
 
-    def get_word_from(self, word_address):
+    def read(self, word_address):
         offset = (word_address - self.start_address) * 2
         byte0 = self.memory[offset+0] # big-endian
         byte1 = self.memory[offset+1]
@@ -24,19 +24,20 @@ class MemoryMapping(object):
         return result
 
 
-    def set_word_to(self, word_address, value):
+    def write(self, word_address, value):
         byte0 = value & 0xff
         byte1 = (value >> 8) & 0xff
-        offset = (word_address - 0xc000) * 2
+        #offset = (word_address - 0xc000) * 2
+        offset = (word_address - self.start_address) * 2
         self.memory[offset+0] = byte1
         self.memory[offset+1] = byte0
 
 
-    def dump_from(self, start_address, length):
+    def dump(self, start_address, length):
         result = []
         for offset in range(0, length):
             addr = start_address + offset
-            w = self.get_word_from(addr)
+            w = self.read(addr)
             result.append(w)
         return result
 
@@ -56,20 +57,20 @@ if __name__ == '__main__':
         mm.memory[i] = i
 
 
-    w = mm.get_word_from(0xc000)
+    w = mm.read(0xc000)
     #print('{:04x}'.format(w))
-    w = mm.get_word_from(0xc001)
+    w = mm.read(0xc001)
     #print('{:04x}'.format(w))
 
 
-    ws = mm.dump_from(0xc000, 4)
+    ws = mm.dump(0xc000, 4)
     w = ' '.join(['{:04x}'.format(x) for x in ws])
     print(w)
 
 
-    mm.set_word_to(0xc000, 0xabcd)
+    mm.write(0xc000, 0xabcd)
 
 
-    ws = mm.dump_from(0xc000, 4)
+    ws = mm.dump(0xc000, 4)
     w = ' '.join(['{:04x}'.format(x) for x in ws])
     print(w)

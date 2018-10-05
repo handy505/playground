@@ -45,7 +45,8 @@ class ConcatThread(threading.Thread):
         #s = ' '.join(['{:02x}'.format(b) for b in rxpacket]) # debug
         #print('{:.3f}: {}'.format(time.time(), s))
 
-        for i, pv in enumerate(self.pvgroup.pool):
+        #for i, pv in enumerate(self.pvgroup.pool):
+        for i, pv in enumerate(self.pvgroup):
             try:
                 #txpacket = pv.response_jbus_query_packet(rxpacket)
                 txpacket = pv.read_memory_by_jbus(rxpacket)
