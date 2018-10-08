@@ -139,8 +139,6 @@ class MainThread(threading.Thread):
 
         self.imeter = DCBoxIlluMeter(11)
         self.tmeter = DCBoxTempMeter(10)
-
-
             
         self.concatthread = concatenate.ConcatThread(self.invgroup, self.imeter, self.tmeter)
 
@@ -151,19 +149,16 @@ class MainThread(threading.Thread):
         self.concatthread.start()
         while True:
             now = time.time()
-            if time.time() - refresh_timestamp > 3:
+            if now - refresh_timestamp > 3:
                 for inv in self.invgroup:
                     inv.refresh()
 
                 self.imeter.refresh()
                 self.tmeter.refresh()
 
-                dt = datetime.datetime.fromtimestamp(now)
+                #dt = datetime.datetime.fromtimestamp(now)
                 #print('Refresh at {}'.format(dt))
                 refresh_timestamp = now
-
-            
-            
 
 
 def main():
