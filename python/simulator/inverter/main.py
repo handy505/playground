@@ -162,6 +162,7 @@ class MainThread(threading.Thread):
 
 
 def main():
+    print('PV Inverter simulator')
     mainthread = MainThread()
     mainthread.start()
 
