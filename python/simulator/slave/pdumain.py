@@ -4,6 +4,7 @@ import time
 import threading
 import random
 import datetime
+import serial
 
 import crc
 import memorymapping
@@ -15,14 +16,11 @@ class MainThread(threading.Thread):
     def __init__(self):
         super().__init__()
 
-        self.invgroup = []
-        for id in range(1, 3):
-            inv = devices.Inverter(id)
-            print(inv)
-            self.invgroup.append(inv)
-
-        self.imeter = devices.DCBoxIlluMeter(11)
-        self.tmeter = devices.DCBoxTempMeter(10)
+        self.boards= []
+        for id in range(1, 8):
+            board= devices.PDUBoard(id)
+            print(board)
+            self.boards.append(board)
             
         self.concatthread = concatenate.ConcatThread(self.invgroup, self.imeter, self.tmeter)
 
@@ -33,11 +31,10 @@ class MainThread(threading.Thread):
         while True:
             now = time.time()
             if now - refresh_timestamp > 3:
-                for inv in self.invgroup:
-                    inv.refresh()
 
-                self.imeter.refresh()
-                self.tmeter.refresh()
+                [board.refresh() for board in self.boards]
+                [print(board) for board in self.boards]
+
 
                 #dt = datetime.datetime.fromtimestamp(now)
                 #print('Refresh at {}'.format(dt))
@@ -45,7 +42,7 @@ class MainThread(threading.Thread):
 
 
 def main():
-    print('PV Inverter simulator')
+    print('PDU slave simulator')
     mainthread = MainThread()
     mainthread.start()
 

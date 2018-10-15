@@ -121,3 +121,29 @@ class Inverter(JbusDevice):
             self.mm.write(0xc031, word1)
             self.mm.write(0xc032, word0)
 
+
+class PDUBoard(JbusDevice):
+    def __init__(self, id):
+        super().__init__(id)
+        self.mm = memorymapping.MemoryMapping(0x0000, 0xffff)
+        self.start_timestamp = time.time()
+
+    def __str__(self):
+        value = self.mm.read(0x0240)
+        return 'PDUBoard-{},value:{}'.format(self.id, value) 
+
+    def refresh(self):
+        with self.lock:
+            value = time.time() - self.start_timestamp
+            self.mm.write(0x0240, int(value))
+
+
+if __name__ == '__main__':
+    import time
+    board = PDUBoard(1)
+
+    while True:
+        board.refresh()
+        print(board)
+        time.sleep(1)
+
