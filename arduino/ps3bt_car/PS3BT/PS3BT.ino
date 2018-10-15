@@ -42,12 +42,6 @@ unsigned char rightpwm = 0;
 unsigned long leftstop_timestamp = 0;
 unsigned long rightstop_timestamp = 0;
 
-unsigned char calc_pwm2(unsigned long last_timestamp){
-  int diff_time = (millis() - last_timestamp) / 4;
-  int duty = diff_time;
-  if (duty > 255) return 255;
-  else            return duty;
-}
 
 unsigned int calc_pwm(unsigned int value){
   int delta = 0;
@@ -66,6 +60,11 @@ void left_backward(void){
   digitalWrite(IN2_PIN, HIGH);
 }
 
+void left_stop(void){
+  digitalWrite(IN1_PIN, LOW);
+  digitalWrite(IN2_PIN, LOW);
+}
+
 void right_forward(void){
   digitalWrite(IN3_PIN, HIGH);
   digitalWrite(IN4_PIN, LOW);    
@@ -74,6 +73,11 @@ void right_forward(void){
 void right_backward(void){
   digitalWrite(IN3_PIN, LOW);
   digitalWrite(IN4_PIN, HIGH);  
+}
+
+void right_stop(void){
+  digitalWrite(IN3_PIN, LOW);
+  digitalWrite(IN4_PIN, LOW);  
 }
 
 void polling(void){
@@ -106,7 +110,7 @@ void polling(void){
       active = true;
       
     }else{
-
+      left_stop();
       if(leftpwm > 20)      leftpwm -= 3;
       else if(leftpwm > 0)  leftpwm -= 1;
       analogWrite(ENA_PIN, leftpwm);
@@ -134,15 +138,13 @@ void polling(void){
       active = true;
       
     }else{
-      
+      right_stop();
       if(rightpwm > 20)      rightpwm -= 3;
       else if(rightpwm > 0)  rightpwm -= 1;
       analogWrite(ENB_PIN, rightpwm);
             
     }
 
-    
-      
 
     if (active){
       Serial.print(F("\r\n "));
