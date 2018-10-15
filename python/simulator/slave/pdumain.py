@@ -22,7 +22,7 @@ class MainThread(threading.Thread):
             print(board)
             self.boards.append(board)
             
-        self.concatthread = concatenate.ConcatThread(self.invgroup, self.imeter, self.tmeter)
+        self.concatthread = concatenate.ConcatThread(self.boards, None, None)
 
 
     def run(self):

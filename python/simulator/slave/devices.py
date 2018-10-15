@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import threading
 import random
+import time
 
 import crc
 import memorymapping
@@ -139,7 +140,6 @@ class PDUBoard(JbusDevice):
 
 
 if __name__ == '__main__':
-    import time
     board = PDUBoard(1)
 
     while True:
