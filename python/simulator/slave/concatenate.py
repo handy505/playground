@@ -11,9 +11,8 @@ class ConcatThread(threading.Thread):
         self.pvgroup = pvgroup
         self.imeter = imeter
         self.tmeter = tmeter
-        #self.ser = serial.Serial(port='/dev/ttyUSB1', baudrate=9600)
-        #self.ser = serial.Serial(port='/dev/ttyUSB0', baudrate=9600)
-        self.ser = serial.Serial(port='/dev/ttyUSB0', baudrate=57600)
+        self.ser = serial.Serial(port='/dev/ttyUSB0', baudrate=9600)
+        #self.ser = serial.Serial(port='/dev/ttyUSB0', baudrate=57600)
         self.looping = True
 
 
