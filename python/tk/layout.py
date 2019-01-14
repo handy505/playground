@@ -49,8 +49,9 @@ class MainView(tk.Frame):
         dpage = DDCPage(self)
 
         buttonframe = tk.Frame(self, bg='black')
-        container = tk.Frame(self)
         buttonframe.pack(side="top", fill="x", expand=False)
+
+        container = tk.Frame(self)
         container.pack(side="top", fill="both", expand=True)
 
         mpage.place(in_=container, x=0, y=0, relwidth=1, relheight=1)
