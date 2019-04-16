@@ -1,6 +1,8 @@
 import time
 import datetime
+import random
 from collections import namedtuple
+from collections import deque 
 
 '''    
 High Level
@@ -8,8 +10,7 @@ High Level
     Records
 
 Low Level
-    Scheduler
-    Collector, BusHandler
+    Scheduler, Collector, BusHandler, Service
     GUI
     Hearbeat
     Concat 
@@ -29,82 +30,91 @@ class MeasurementRecord(Record): pass
 # ----------------------------------------------------
 # High Level
 # ----------------------------------------------------
+AlarmEvent = namedtuple('AlarmEvent', 'id logtime beforecode aftercode')
+ErrorEvent = namedtuple('ErrorEvent', 'id logtime beforecode aftercode')
+
 class Device(object):
     def sync_with_hardware(self): pass
     def read_memorymapping(self): pass
 
-class DCBoxMeter(Device): pass
-class ADTecMeter(Device): pass
-class SimuMeter(Device): pass
-class SimuInverter(Device): pass
-
-AlarmEvent = namedtuple('AlarmEvent', 'id logtime beforecode aftercode')
-ErrorEvent = namedtuple('ErrorEvent', 'id logtime beforecode aftercode')
 
 class AblerexInverter(Device):
     def __init__(self, id):
         self.id = id
+        self.alarm_code = 0x00
+        self.error_code = 0x00
+        self.volt = 0
+        self.current = 0
+
     def __repr__(self):
-        return 'AInv-{}'.format(self.id)
+        return 'Ablerex-{}'.format(self.id)
+
     def sync_with_hardware(self):
-        print('AInv-{}.sync_with_hardware()'.format(self.id))
+        print('Ablerex-{}.sync_with_hardware()'.format(self.id))
+
     def get_alarm_event(self):
         return AlarmEvent(self.id, datetime.datetime.now(), 0x00, 0x01)
+
 
 class KACOInverter(Device):
     def __init__(self, id):
         self.id = id
+        self.volt = 0
+        self.current = 0
+
     def __repr__(self):
-        return 'KInv-{}'.format(self.id)
+        return 'KACO-{}'.format(self.id)
+
     def sync_with_hardware(self):
-        print('KInv-{}.sync_with_hardware()'.format(self.id))
+        print('KACO-{}.sync_with_hardware()'.format(self.id))
 
 
+class SimuInverter(Device):
+    def __init__(self, id):
+        self.id = id
+        self.alarm_codes = deque()
+        self.error_codes = deque()
+        self.alarm_events = []
+        self.error_events = []
+        self.volt = 0
+        self.current = 0
+
+    def __repr__(self):
+        return 'Simu-{}'.format(self.id)
+
+    def sync_with_hardware(self):
+        print('Simu-{}.sync_with_hardware()'.format(self.id))
+        self.alarm_code.append(random.randint(0,1))
+        self.error_code.append(random.randint(0,1))
+        self.volt       = random.randint(100,200)
+        self.current    = random.randint(10,100)
+
+
+class DCBoxMeter(Device): pass
+class ADTecMeter(Device): pass
+class SimuMeter(Device): pass
 # ----------------------------------------------------
 
-
-
-
 def inverters_factory():
-    ablerex_inverters = [AblerexInverter(i) for i in range(1,5)]
-    kaco_inverters = [KACOInverter(i) for i in range(5,8)]
-    result = ablerex_inverters + kaco_inverters
+    result = [
+        AblerexInverter(1),
+        KACOInverter(2),
+        SimuInverter(3),
+    ]
     return result
-        
 
     
 
 def main():
 
-    '''configurations = 'string'
-    inverters = inverters_factory(configurations)
-    meters = meter_factory(configurations)
-
-    if is_concat_mode(configurations):
-        concat_thread = ConcatThread()
-
-    collector_thread = CollectorThread()
-    recorder_thread = RecorderThread()
-    uploader_thread = UploaderThread()
-    '''
-
-    
     inverters = inverters_factory()
     [print(inv) for inv in inverters]
 
+    for inv in inverters:
+        inv.sync_with_hardware()
+        time.sleep(1)
 
-
-    ae = AlarmEvent(1, datetime.datetime.now(), 0x00, 0x01)
-    ee = ErrorEvent(1, datetime.datetime.now(), 0x00, 0x01)
-    print(ae.beforecode)
-    print(ee)
-
-
-    while True:
-        for inv in inverters:
-            inv.sync_with_hardware()
-            time.sleep(1)
-
+    
 
 if __name__ == '__main__':
     main()
