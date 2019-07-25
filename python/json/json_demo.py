@@ -17,7 +17,7 @@ class Machine(object):
 
 if __name__ == "__main__":
     m1 = Machine()
-    print (m1)
+    print(m1)
     print(m1.__dict__)
 
     # dictionary to json string
