@@ -36,6 +36,9 @@ class AblerexInverterSimulator(InverterProxy):
         self.id = id
         self.KWH = 0
 
+    def __repr__(self):
+        return 'Inverter-{}'.format(self.id)
+
     def sync_with_hardware(self):
         self.DC1Voltage = round(random.uniform(5,50))
         self.DC2Voltage = round(random.uniform(10,100))

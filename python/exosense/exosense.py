@@ -8,6 +8,15 @@ import random
 from datetime import datetime
 
 
+def create_gateway_channel(name):
+    result = {'display_name': name,
+              'properties': { 'data_type': 'STRING',
+                              'primitive_type': 'STRING',
+                            }
+             }
+    return result 
+
+
 def create_basic_channel(name):
     result = {'display_name': name,
               'properties': { 'data_type': 'ELEC_POTENTIAL',
@@ -94,6 +103,43 @@ def create_inverter_config_io():
         }
     return d
 
+
+
+def create_meter_config_io():
+    isodt = datetime.now().replace(microsecond=0).isoformat() + '+00:00'
+    d = {'last_edited': isodt,
+         'last_editor': 'user', 
+         'meta': {},
+         'locked': False,
+         'channels': { 'Value': create_basic_channel('Value') }
+        }
+    return d
+
+def create_gateway_config_io():
+    isodt = datetime.now().replace(microsecond=0).isoformat() + '+00:00'
+    d = {'last_edited': isodt,
+         'last_editor': 'user', 
+         'meta': {},
+         'locked': False,
+         'channels': { 'MAC': create_gateway_channel('MAC'), 
+                       'ServiceID': create_gateway_channel('ServiceID'), 
+                     }
+        }
+    return d
+
+def post_config_io(config_io_dict, token):
+    s = json.dumps(config_io_dict)
+    s = 'config_io=' + s
+
+    url = 'https://m21d2g4j50cu80000.m2.exosite.io/onep:v1/stack/alias'
+    headers = {'Content-Type': 'application/x-www-form-urlencoded',
+               'charset': 'utf-8',
+               'X-Exosite-CIK': token}
+
+    response = requests.post(url, headers=headers, data=s)
+    print(response)
+    print(response.headers)
+    print(response.text)
 
 
 if __name__ == '__main__':

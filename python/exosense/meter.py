@@ -23,6 +23,9 @@ class TempMeterSimulator(MeterProxy):
     def __init__(self, id):
         self.id = id
 
+    def __repr__(self):
+        return 'TMeter-{}'.format(self.id)
+
     def sync_with_hardware(self):
         self.Value = round(random.uniform(15,35))
 
@@ -33,6 +36,9 @@ class TempMeterSimulator(MeterProxy):
 class IlluMeterSimulator(MeterProxy):
     def __init__(self, id):
         self.id = id
+
+    def __repr__(self):
+        return 'IMeter-{}'.format(self.id)
 
     def sync_with_hardware(self):
         self.Value = round(random.uniform(100,1000))
