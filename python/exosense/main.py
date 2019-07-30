@@ -230,15 +230,17 @@ if __name__ == '__main__':
     '''
 
 
-    d = create_gateway_record_dict()
+    '''d = create_gateway_record_dict()
     token = get_token(9)
     post_to_exosence(d, token)
+    sys.exit()
+    '''
 
 
 
     inverters = [AblerexInverterSimulator(id) for id in range(1,6+1)]
     print(inverters)
-    meters = [IlluMeterSimulator(8), TempMeterSimulator(9)]
+    meters = [IlluMeterSimulator(7), TempMeterSimulator(8)]
     print(meters)
 
     while True:
@@ -263,8 +265,11 @@ if __name__ == '__main__':
             post_to_exosence(d, token)
 
 
+        d = create_gateway_record_dict()
+        token = get_token(9)
+        post_to_exosence(d, token)
 
-        time.sleep(2)
+        time.sleep(60)
 
 
 
