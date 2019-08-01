@@ -7,6 +7,8 @@ from datetime import datetime
 import time
 from abc import ABCMeta, abstractmethod
 
+import exosense
+
 MeterRecord = namedtuple( 'MeterRecord', ['ID', 'LoggedTime', 'Value'])
 
 
@@ -22,6 +24,7 @@ class MeterProxy(metaclass=ABCMeta):
 class TempMeterSimulator(MeterProxy):
     def __init__(self, id):
         self.id = id
+        self.Value = 0
 
     def __repr__(self):
         return 'TMeter-{}'.format(self.id)
@@ -33,9 +36,19 @@ class TempMeterSimulator(MeterProxy):
         dt = datetime.now().replace(microsecond=0)
         return MeterRecord(self.id, dt, self.Value)
 
+    def create_config_io_dict(self):
+        result = exosense.create_meter_config_io()
+        return result
+
+    def create_record_dict(self):
+        rec = self.create_record()
+        return exosense.creatre_meter_record_dict(rec)
+
+
 class IlluMeterSimulator(MeterProxy):
     def __init__(self, id):
         self.id = id
+        self.Value = 0
 
     def __repr__(self):
         return 'IMeter-{}'.format(self.id)
@@ -46,6 +59,15 @@ class IlluMeterSimulator(MeterProxy):
     def create_record(self):
         dt = datetime.now().replace(microsecond=0)
         return MeterRecord(self.id, dt, self.Value)
+
+    def create_config_io_dict(self):
+        result = exosense.create_meter_config_io()
+        return result
+    
+    def create_record_dict(self):
+        rec = self.create_record()
+        return exosense.creatre_meter_record_dict(rec)
+
 
 if __name__ == '__main__':
     meters = [IlluMeterSimulator(248), TempMeterSimulator(249)]

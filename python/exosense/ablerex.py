@@ -7,6 +7,8 @@ from collections import deque, namedtuple
 from datetime import datetime
 import time
 
+import exosense
+
 InverterRecord = namedtuple(
     'InverterRecord', 
     [ 'ID',
@@ -34,6 +36,39 @@ def create_ablerex_inverter_simulators(since, to):
 class AblerexInverterSimulator(InverterProxy):
     def __init__(self, id):
         self.id = id
+
+        self.DC1Voltage = 0
+        self.DC2Voltage = 0
+        self.DC3Voltage = 0
+        self.DC4Voltage = 0
+
+        self.DC1Current = 0
+        self.DC2Current = 0
+        self.DC3Current = 0
+        self.DC4Current = 0
+
+        self.DC1Power = 0
+        self.DC2Power = 0
+        self.DC3Power = 0
+        self.DC4Power = 0
+
+        self.DCPositive = 0
+        self.DCNegative = 0
+
+        self.InternalTemp = 0
+        self.HeatSinkTemp = 0
+
+        self.AC1Voltage = 0
+        self.AC2Voltage = 0
+        self.AC3Voltage = 0
+
+        self.AC1Current = 0
+        self.AC2Current = 0
+        self.AC3Current = 0
+
+        self.ACFrequency = 0
+        self.ACOutputPower = 0
+
         self.KWH = 0
 
     def __repr__(self):
@@ -87,6 +122,44 @@ class AblerexInverterSimulator(InverterProxy):
                                self.ACFrequency, self.ACOutputPower,
                                self.KWH
                              )
+
+    def create_config_io_dict(self):
+        result = exosense.create_inverter_config_io()
+        return result
+
+    def create_record_dict(self):
+        isodt = datetime.now().replace(microsecond=0).isoformat() + '+00:00'
+        d = {'LoggedTime': isodt,
+             'DC1Voltage': self.DC1Voltage,
+             'DC2Voltage': self.DC2Voltage,
+             'DC3Voltage': self.DC3Voltage,
+             'DC4Voltage': self.DC4Voltage,
+             'DC1Current': self.DC1Current,
+             'DC2Current': self.DC2Current,
+             'DC3Current': self.DC3Current,
+             'DC4Current': self.DC4Current,
+             'DC1Power'  : self.DC1Power, 
+             'DC2Power'  : self.DC2Power, 
+             'DC3Power'  : self.DC3Power, 
+             'DC4Power'  : self.DC4Power, 
+
+             'DCPositive'  : self.DCPositive,
+             'DCNegative'  : self.DCNegative, 
+             'InternalTemp': self.InternalTemp, 
+             'HeatSinkTemp': self.HeatSinkTemp, 
+
+             'AC1Voltage': self.AC1Voltage, 
+             'AC2Voltage': self.AC2Voltage, 
+             'AC3Voltage': self.AC3Voltage,
+             'AC1Current': self.AC1Current,
+             'AC2Current': self.AC2Current, 
+             'AC3Current': self.AC3Current, 
+
+             'ACFrequency'  : self.ACFrequency,
+             'ACOutputPower': self.ACOutputPower,
+             'KWH'          : self.KWH 
+            }
+        return d
 
 
 if __name__ == '__main__':
