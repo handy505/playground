@@ -13,6 +13,7 @@ InverterRecord = namedtuple(
     'InverterRecord', 
     [ 'ID',
       'LoggedTime',
+      'Events',
       'DC1Voltage', 'DC2Voltage', 'DC3Voltage', 'DC4Voltage', 
       'DC1Current', 'DC2Current', 'DC3Current', 'DC4Current',
       'DC1Power', 'DC2Power', 'DC3Power', 'DC4Power',
@@ -36,6 +37,7 @@ def create_ablerex_inverter_simulators(since, to):
 class AblerexInverterSimulator(InverterProxy):
     def __init__(self, id):
         self.id = id
+        self.event_info = 'Normal'
 
         self.DC1Voltage = 0
         self.DC2Voltage = 0
@@ -74,7 +76,23 @@ class AblerexInverterSimulator(InverterProxy):
     def __repr__(self):
         return 'Inverter-{}'.format(self.id)
 
+    def get_alarm_codes(self):
+        return random.sample(range(1,16), 2)
+
+    def get_error_codes(self):
+        return random.sample(range(1,16), 2)
+
+    def get_event_info(self):
+        alarms = self.get_alarm_codes()
+        errors = self.get_error_codes()
+        alarmstrings = ['AL{:02}'.format(a) for a in alarms]
+        errorstrings = ['ER{:02}'.format(e) for e in errors]
+        events = alarmstrings + errorstrings 
+        return ','.join(events)
+
     def sync_with_hardware(self):
+        self.event_info = self.get_event_info()
+
         self.DC1Voltage = round(random.uniform(5,50))
         self.DC2Voltage = round(random.uniform(10,100))
         self.DC3Voltage = round(random.uniform(10,100))
@@ -112,6 +130,7 @@ class AblerexInverterSimulator(InverterProxy):
     def create_record(self):
         return InverterRecord( self.id,
                                datetime.now().replace(microsecond=0),
+                               self.event_info,
                                self.DC1Voltage, self.DC2Voltage, self.DC3Voltage, self.DC4Voltage,
                                self.DC1Current, self.DC2Current, self.DC3Current, self.DC4Current,
                                self.DC1Power, self.DC2Power, self.DC3Power, self.DC4Power,
@@ -128,38 +147,8 @@ class AblerexInverterSimulator(InverterProxy):
         return result
 
     def create_record_dict(self):
-        isodt = datetime.now().replace(microsecond=0).isoformat() + '+00:00'
-        d = {'LoggedTime': isodt,
-             'DC1Voltage': self.DC1Voltage,
-             'DC2Voltage': self.DC2Voltage,
-             'DC3Voltage': self.DC3Voltage,
-             'DC4Voltage': self.DC4Voltage,
-             'DC1Current': self.DC1Current,
-             'DC2Current': self.DC2Current,
-             'DC3Current': self.DC3Current,
-             'DC4Current': self.DC4Current,
-             'DC1Power'  : self.DC1Power, 
-             'DC2Power'  : self.DC2Power, 
-             'DC3Power'  : self.DC3Power, 
-             'DC4Power'  : self.DC4Power, 
-
-             'DCPositive'  : self.DCPositive,
-             'DCNegative'  : self.DCNegative, 
-             'InternalTemp': self.InternalTemp, 
-             'HeatSinkTemp': self.HeatSinkTemp, 
-
-             'AC1Voltage': self.AC1Voltage, 
-             'AC2Voltage': self.AC2Voltage, 
-             'AC3Voltage': self.AC3Voltage,
-             'AC1Current': self.AC1Current,
-             'AC2Current': self.AC2Current, 
-             'AC3Current': self.AC3Current, 
-
-             'ACFrequency'  : self.ACFrequency,
-             'ACOutputPower': self.ACOutputPower,
-             'KWH'          : self.KWH 
-            }
-        return d
+        rec = self.create_record()
+        return exosense.create_inverter_record_dict(rec)
 
 
 if __name__ == '__main__':

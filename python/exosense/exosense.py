@@ -69,48 +69,71 @@ def create_power_channel(name):
 # ----------------------------------------------------------------------------
 def create_inverter_config_io():
     isodt = datetime.now().replace(microsecond=0).isoformat() + '+00:00'
+
     d = {'last_edited': isodt,
          'last_editor': 'user', 
          'meta': {},
          'locked': False,
          'channels': {'LoggedTime': create_string_channel('LoggedTime'),
-                      'DC1Voltage': create_voltage_channel('DC1Voltage'),
-                      'DC2Voltage': create_voltage_channel('DC2Voltage'),
-                      'DC3Voltage': create_voltage_channel('DC3Voltage'),
-                      'DC4Voltage': create_voltage_channel('DC4Voltage'),
-
-                      'DC1Current': create_current_channel('DC1Current'),
-                      'DC2Current': create_current_channel('DC2Current'),
-                      'DC3Current': create_current_channel('DC3Current'),
-                      'DC4Current': create_current_channel('DC4Current'),
-
-                      'DC1Power': create_power_channel('DC1Power'),
-                      'DC2Power': create_power_channel('DC2Power'),
-                      'DC3Power': create_power_channel('DC3Power'),
-                      'DC4Power': create_power_channel('DC4Power'),
-
-                      'DCPositive': create_basic_channel('DCPositive'),
-                      'DCNegative': create_basic_channel('DCNegative'),
-
-                      'InternalTemp': create_basic_channel('InternalTemp'),
-                      'HeatSinkTemp': create_basic_channel('HeatSinkTemp'),
-
-                      'AC1Voltage': create_basic_channel('AC1Voltage'),
-                      'AC2Voltage': create_basic_channel('AC2Voltage'),
-                      'AC3Voltage': create_basic_channel('AC3Voltage'),
-
-                      'AC1Current': create_basic_channel('AC1Current'),
-                      'AC2Current': create_basic_channel('AC2Current'),
-                      'AC3Current': create_basic_channel('AC3Current'),
-
-                      'ACFrequency': create_basic_channel('ACFrequency'),
+                      'Events'    : create_string_channel('Events'),
+                      'InputSide' : create_json_channel('InputSide'),
+                      'OutputSide': create_json_channel('OutputSide'),
+                      'Internal'  : create_json_channel('Internal'),
                       'ACOutputPower': create_basic_channel('ACOutputPower'),
                       'KWH': create_basic_channel('KWH'),
                      },
         }
     return d
 
+
+
 def create_inverter_record_dict(rec):
+    isodt = datetime.now().replace(microsecond=0).isoformat() + '+00:00'
+
+    inputside = { 'headers': ['DC1Voltage', 'DC2Voltage', 'DC3Voltage', 'DC4Voltage', 'DC1Current', 'DC2Current', 'DC3Current', 'DC4Current'],
+                  'values': [[ rec.DC1Voltage, 
+                               rec.DC2Voltage,
+                               rec.DC3Voltage,
+                               rec.DC4Voltage,
+                               rec.DC1Current,
+                               rec.DC2Current,
+                               rec.DC3Current,
+                               rec.DC4Current,
+                            ]]
+                }
+
+    internal = { 'headers': ['DCPositive', 'DCNegative', 'InternalTemp', 'HeatSinkTemp'],
+                 'values':  [[rec.DCPositive, 
+                              rec.DCNegative, 
+                              rec.InternalTemp, 
+                              rec.HeatSinkTemp
+                            ]]
+               }
+
+
+    outputside = { 'headers': ['AC1Voltage', 'AC2Voltage', 'AC3Voltage', 'AC1Current', 'AC2Current', 'AC3Current', 'ACFrequency'],
+                   'values':  [[rec.AC1Voltage, 
+                                rec.AC2Voltage, 
+                                rec.AC3Voltage, 
+                                rec.AC1Current, 
+                                rec.AC2Current, 
+                                rec.AC3Current, 
+                                rec.ACFrequency
+                              ]]
+                 }               
+
+    d = {'LoggedTime'   : isodt,
+         'Events'       : rec.Events,
+         'InputSide'    : inputside,
+         'Internal'     : internal,
+         'OutputSide'   : outputside,
+         'ACOutputPower': rec.ACOutputPower,
+         'KWH'          : rec.KWH 
+        }
+    return d
+
+
+def create_inverter_record_dict_old(rec):
     isodt = datetime.now().replace(microsecond=0).isoformat() + '+00:00'
     d = {'LoggedTime': isodt,
          'DC1Voltage': rec.DC1Voltage,
@@ -143,7 +166,6 @@ def create_inverter_record_dict(rec):
          'KWH'          : rec.KWH 
         }
     return d
-
 # ----------------------------------------------------------------------------
 def create_meter_config_io():
     isodt = datetime.now().replace(microsecond=0).isoformat() + '+00:00'

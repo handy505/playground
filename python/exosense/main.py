@@ -73,6 +73,9 @@ class GatewaySimulator(object):
     def __repr__(self):
         return 'Gateway-{}'.format(self.id)
 
+    def sync_with_hardware(self):
+        pass
+
     def create_config_io_dict(self):
         return exosense.create_gateway_config_io()
     
@@ -80,6 +83,21 @@ class GatewaySimulator(object):
         info = "{}, {}".format(self.mac, self.serviceid)
         result = {'ServiceInfo': info}
         return result 
+
+def single_machine():
+    inv1 = AblerexInverterSimulator(1)
+    '''d = inv1.create_config_io_dict()
+    t = get_token(inv1.id)
+    exosense.post_config_io(d, t)
+    '''
+
+    while True:
+        inv1.sync_with_hardware()
+        d = inv1.create_record_dict()
+        print(d)
+        t = get_token(inv1.id)
+        exosense.post_to_exosence_data_in(d, t)
+        time.sleep(3)
 
 
 if __name__ == '__main__':
@@ -96,16 +114,21 @@ if __name__ == '__main__':
     
 
     devices = [inv1, inv2, inv3, imeter4, tmeter5, gw6, inv7, inv8, gw9]
+    #devices = [inv1, inv2, inv3, inv7, inv8]
+    #devices = [inv1]
 
-    '''# config io
+    '''
+    # send config_io
     for device in devices:
         d = device.create_config_io_dict()
         t = get_token(device.id)
         exosense.post_config_io(d, t)
         '''
 
+    # post data_in
     while True:
         for device in devices:
+            device.sync_with_hardware()
             d = device.create_record_dict()
             t = get_token(device.id)
             print(device.id)
