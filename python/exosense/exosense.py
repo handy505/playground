@@ -8,63 +8,53 @@ import random
 from datetime import datetime
 
 def create_json_channel(name):
-    result = {'display_name': name,
-              'properties': { 'data_type':      'JSON',
-                              'primitive_type': 'JSON',
-                            }
-             }
+    result = {
+        'display_name': name,
+        'properties': { 
+            'data_type': 'JSON',
+            'primitive_type': 'JSON',
+        },
+        'protocol_config':{
+            'sample_rate': 60000,
+            'report_rate': 60000,
+            'timeout': 180000,
+        },
+    }
     return result 
 
 def create_string_channel(name):
-    result = {'display_name': name,
-              'properties': { 'data_type':      'STRING',
-                              'primitive_type': 'STRING',
-                            }
-             }
+    result = {
+        'display_name': name,
+        'properties': { 
+            'data_type': 'STRING',
+            'primitive_type': 'STRING',
+        },
+        'protocol_config':{
+            'sample_rate': 60000,
+            'report_rate': 60000,
+            'timeout': 180000,
+        },
+    }
+     
     return result 
 
 
-def create_basic_channel(name):
-    result = {'display_name': name,
-              'properties': { 'data_type': 'ELEC_POTENTIAL',
-                              'primitive_type': 'NUMERIC',
-                              'precision': 1,
-                            }
-             }
+def create_basic_channel(name, data_type='ELEC_POTENTIAL', primitive_type='NUMERIC'):
+    result = {
+        'display_name': name,
+        'properties': { 
+            'data_type': data_type,
+            'primitive_type': primitive_type,
+            'precision': 1,
+        },
+        'protocol_config':{
+            'sample_rate': 60000,
+            'report_rate': 60000,
+            'timeout': 180000,
+        },
+    }
     return result 
 
-
-def create_voltage_channel(name):
-    result = {'display_name': name,
-              'properties': { 'data_type': 'ELEC_POTENTIAL',
-                              'primitive_type': 'NUMERIC',
-                              'data_unit': 'V',
-                              'precision': 1,
-                            }
-             }
-    return result 
-
-
-def create_current_channel(name):
-    result = {'display_name': name,
-              'properties': { 'data_type': 'ELEC_CURRENT',
-                              'primitive_type': 'NUMERIC',
-                              'data_unit': 'A',
-                              'precision': 1,
-                            }
-             }
-    return result 
-
-
-def create_power_channel(name):
-    result = {'display_name': name,
-              'properties': { 'data_type': 'ENERGY',
-                              'primitive_type': 'NUMERIC',
-                              'data_unit': 'KWH',
-                              'precision': 1,
-                            }
-             }
-    return result 
 
 # ----------------------------------------------------------------------------
 def create_inverter_config_io():
@@ -73,9 +63,9 @@ def create_inverter_config_io():
          'last_editor': 'user', 
          'meta': {},
          'locked': False,
-         'channels': {'LoggedTime'   : create_string_channel('LoggedTime'),
-                      'Events'       : create_string_channel('Events'),
-                      'Others'       : create_json_channel('Others'),
+         'channels': {'LoggedTime'   : create_basic_channel('LoggedTime', data_type='STRING', primitive_type='STRING'),
+                      'Events'       : create_basic_channel('Events', data_type='STRING', primitive_type='STRING'),
+                      'Others'       : create_basic_channel('Others', data_type='JSON', primitive_type='JSON'),
                       'ACOutputPower': create_basic_channel('ACOutputPower'),
                       'KWH'          : create_basic_channel('KWH'),
                      },
