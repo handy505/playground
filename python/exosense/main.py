@@ -86,10 +86,10 @@ class GatewaySimulator(object):
 
 def single_machine():
     inv1 = AblerexInverterSimulator(1)
-    '''d = inv1.create_config_io_dict()
+    d = inv1.create_config_io_dict()
+    print(d)
     t = get_token(inv1.id)
     exosense.post_config_io(d, t)
-    '''
 
     while True:
         inv1.sync_with_hardware()
@@ -100,8 +100,7 @@ def single_machine():
         time.sleep(3)
 
 
-if __name__ == '__main__':
-
+def power_station():
     inv1 = AblerexInverterSimulator(1)
     inv2 = AblerexInverterSimulator(2)
     inv3 = AblerexInverterSimulator(3)
@@ -139,3 +138,6 @@ if __name__ == '__main__':
 
 
 
+
+if __name__ == '__main__':
+    single_machine()

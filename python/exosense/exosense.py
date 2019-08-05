@@ -69,64 +69,49 @@ def create_power_channel(name):
 # ----------------------------------------------------------------------------
 def create_inverter_config_io():
     isodt = datetime.now().replace(microsecond=0).isoformat() + '+00:00'
-
     d = {'last_edited': isodt,
          'last_editor': 'user', 
          'meta': {},
          'locked': False,
-         'channels': {'LoggedTime': create_string_channel('LoggedTime'),
-                      'Events'    : create_string_channel('Events'),
-                      'InputSide' : create_json_channel('InputSide'),
-                      'OutputSide': create_json_channel('OutputSide'),
-                      'Internal'  : create_json_channel('Internal'),
+         'channels': {'LoggedTime'   : create_string_channel('LoggedTime'),
+                      'Events'       : create_string_channel('Events'),
+                      'Others'       : create_json_channel('Others'),
                       'ACOutputPower': create_basic_channel('ACOutputPower'),
-                      'KWH': create_basic_channel('KWH'),
+                      'KWH'          : create_basic_channel('KWH'),
                      },
         }
     return d
 
 
-
 def create_inverter_record_dict(rec):
     isodt = datetime.now().replace(microsecond=0).isoformat() + '+00:00'
 
-    inputside = { 'headers': ['DC1Voltage', 'DC2Voltage', 'DC3Voltage', 'DC4Voltage', 'DC1Current', 'DC2Current', 'DC3Current', 'DC4Current'],
-                  'values': [[ rec.DC1Voltage, 
-                               rec.DC2Voltage,
-                               rec.DC3Voltage,
-                               rec.DC4Voltage,
-                               rec.DC1Current,
-                               rec.DC2Current,
-                               rec.DC3Current,
-                               rec.DC4Current,
-                            ]]
-                }
-
-    internal = { 'headers': ['DCPositive', 'DCNegative', 'InternalTemp', 'HeatSinkTemp'],
-                 'values':  [[rec.DCPositive, 
-                              rec.DCNegative, 
-                              rec.InternalTemp, 
-                              rec.HeatSinkTemp
-                            ]]
+    others = { 'headers': ['Key', 'Value'],
+               'values':  [['DC1Voltage', rec.DC1Voltage],
+                           ['DC2Voltage', rec.DC2Voltage],
+                           ['DC3Voltage', rec.DC3Voltage],
+                           ['DC4Voltage', rec.DC4Voltage],
+                           ['DC1Current', rec.DC1Current],
+                           ['DC2Current', rec.DC2Current],
+                           ['DC3Current', rec.DC3Current],
+                           ['DC4Current', rec.DC4Current],
+                           ['DCPositive', rec.DCPositive],
+                           ['DCNegative', rec.DCNegative],
+                           ['InternalTemp', rec.InternalTemp],
+                           ['HeatSinkTemp', rec.HeatSinkTemp],
+                           ['AC1Voltage', rec.AC1Voltage],
+                           ['AC2Voltage', rec.AC2Voltage],
+                           ['AC3Voltage', rec.AC3Voltage],
+                           ['AC1Current', rec.AC1Current],
+                           ['AC2Current', rec.AC2Current],
+                           ['AC3Current', rec.AC3Current],
+                           ['ACFrequency',rec.ACFrequency],
+                          ]
                }
-
-
-    outputside = { 'headers': ['AC1Voltage', 'AC2Voltage', 'AC3Voltage', 'AC1Current', 'AC2Current', 'AC3Current', 'ACFrequency'],
-                   'values':  [[rec.AC1Voltage, 
-                                rec.AC2Voltage, 
-                                rec.AC3Voltage, 
-                                rec.AC1Current, 
-                                rec.AC2Current, 
-                                rec.AC3Current, 
-                                rec.ACFrequency
-                              ]]
-                 }               
 
     d = {'LoggedTime'   : isodt,
          'Events'       : rec.Events,
-         'InputSide'    : inputside,
-         'Internal'     : internal,
-         'OutputSide'   : outputside,
+         'Others'       : others,
          'ACOutputPower': rec.ACOutputPower,
          'KWH'          : rec.KWH 
         }
