@@ -33,7 +33,8 @@ token6 = 'nVVY8yGCWFTsMaVH82L5nh4kc8IWePplKAShuIbK'
 token7 = 'ZGnRLjst9qdgu7xUti8DMLmh58B4mFINOsKGHvPs'
 token8 = 'LDXIwnEebOXZxnL7hpFV1Fr3Jf9ATw42DK5YpQjP'
 token9 = '2OIKqs26lXkSUlPvs2B9J2ZYak2PNAmygaCvUAB8'
-token10 = '2OIKqs26lXkSUlPvs2B9J2ZYak2PNAmygaCvUAB8'
+#token10 = '2OIKqs26lXkSUlPvs2B9J2ZYak2PNAmygaCvUAB8'
+token10 = 'abb428e4cdb1fa891c197811dd249e7c884c6cd9'
 
 token_dict = {'Ablerex_001': token1,
               'Ablerex_002': token2,
@@ -85,18 +86,18 @@ class GatewaySimulator(object):
         return result 
 
 def single_machine():
-    inv1 = AblerexInverterSimulator(1)
-    d = inv1.create_config_io_dict()
+    inv = AblerexInverterSimulator(10)
+    d = inv.create_config_io_dict()
     print(d)
-    t = get_token(inv1.id)
-    exosense.post_config_io(d, t)
+    t = get_token(inv.id)
+    exosense.post_config_to_exosense(d, t)
 
     while True:
-        inv1.sync_with_hardware()
-        d = inv1.create_record_dict()
+        inv.sync_with_hardware()
+        d = inv.create_record_dict()
         print(d)
-        t = get_token(inv1.id)
-        exosense.post_to_exosence_data_in(d, t)
+        t = get_token(inv.id)
+        exosense.post_data_to_exosence(d, t)
         time.sleep(3)
 
 
@@ -110,17 +111,19 @@ def power_station():
     inv7 = AblerexInverterSimulator(7)
     inv8 = AblerexInverterSimulator(8)
     gw9 = GatewaySimulator(9, 'B827EB222222', '987654321')
+    inv10 = AblerexInverterSimulator(10)
     
 
-    devices = [inv1, inv2, inv3, imeter4, tmeter5, gw6, inv7, inv8, gw9]
+    devices = [inv1, inv2, inv3, imeter4, tmeter5, gw6, inv7, inv8, gw9, inv10]
     #devices = [inv1, inv2, inv3, inv7, inv8]
     #devices = [inv1]
 
-    # send config_io
+    '''# send config_io
     for device in devices:
         d = device.create_config_io_dict()
         t = get_token(device.id)
-        exosense.post_config_io(d, t)
+        exosense.post_config_to_exosense(d, t)
+        '''
 
     # post data_in
     while True:
@@ -128,10 +131,10 @@ def power_station():
             device.sync_with_hardware()
             d = device.create_record_dict()
             t = get_token(device.id)
-            print(device.id)
-            print(d)
-            exosense.post_to_exosence_data_in(d, t)
-            time.sleep(1)
+            print('Post Device-{} at {}'.format(device.id, datetime.now()))
+            #print(d)
+            exosense.post_data_to_exosence(d, t)
+            #time.sleep(1)
         time.sleep(60)
 
 
