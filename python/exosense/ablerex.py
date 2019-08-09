@@ -22,7 +22,7 @@ InverterRecord = namedtuple(
       'AC1Voltage', 'AC2Voltage', 'AC3Voltage',
       'AC1Current', 'AC2Current', 'AC3Current',
       'ACFrequency', 'ACOutputPower', 
-      'KWH',
+      'KWH'
     ])
 
 
@@ -139,7 +139,7 @@ class AblerexInverterSimulator(InverterProxy):
                                self.AC1Voltage, self.AC2Voltage, self.AC3Voltage,
                                self.AC1Current, self.AC2Current, self.AC3Current,
                                self.ACFrequency, self.ACOutputPower,
-                               self.KWH
+                               self.KWH,
                              )
 
     def create_config_io_dict(self):
@@ -150,6 +150,27 @@ class AblerexInverterSimulator(InverterProxy):
         rec = self.create_record()
         return exosense.create_inverter_record_dict(rec)
 
+
+
+class GatewaySimulator(object):
+    def __init__(self, id, mac, serviceid):
+        self.id = id
+        self.mac = mac
+        self.serviceid = serviceid
+
+    def __repr__(self):
+        return 'Gateway-{}'.format(self.id)
+
+    def sync_with_hardware(self):
+        pass
+
+    def create_config_io_dict(self):
+        return exosense.create_gateway_config_io()
+    
+    def create_record_dict(self):
+        info = "{}, {}".format(self.mac, self.serviceid)
+        result = {'ServiceInfo': info}
+        return result 
 
 if __name__ == '__main__':
     inverters = [AblerexInverterSimulator(id) for id in range(1,7+1)]

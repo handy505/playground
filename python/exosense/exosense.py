@@ -7,24 +7,6 @@ import requests
 import random
 from datetime import datetime
 
-
-def create_string_channel(name):
-    result = {
-        'display_name': name,
-        'properties': { 
-            'data_type': 'STRING',
-            'primitive_type': 'STRING',
-        },
-        'protocol_config':{
-            'sample_rate': 60000,
-            'report_rate': 60000,
-            'timeout': 180000,
-        },
-    }
-     
-    return result 
-
-
 def create_basic_channel(name, data_type='ELEC_POTENTIAL', primitive_type='NUMERIC'):
     result = {
         'display_name': name,
@@ -49,19 +31,17 @@ def create_inverter_config_io():
          'last_editor': 'user', 
          'meta': {},
          'locked': False,
-         'channels': {'LoggedTime'   : create_basic_channel('LoggedTime', data_type='STRING', primitive_type='STRING'),
-                      'Events'       : create_basic_channel('Events', data_type='STRING', primitive_type='STRING'),
+         'channels': {'Events'       : create_basic_channel('Events', data_type='STRING', primitive_type='STRING'),
                       'Others'       : create_basic_channel('Others', data_type='JSON', primitive_type='JSON'),
                       'ACOutputPower': create_basic_channel('ACOutputPower'),
                       'KWH'          : create_basic_channel('KWH'),
+                      'HourlyKWH'    : create_basic_channel('HourlyKWH'),
                      },
         }
     return d
 
 
 def create_inverter_record_dict(rec):
-    isodt = datetime.now().replace(microsecond=0).isoformat() + '+00:00'
-
     others = { 'headers': ['Key', 'Value'],
                'values':  [['DC1Voltage', rec.DC1Voltage],
                            ['DC2Voltage', rec.DC2Voltage],
@@ -83,13 +63,18 @@ def create_inverter_record_dict(rec):
                            ['AC3Current', rec.AC3Current],
                            ['ACFrequency',rec.ACFrequency],
                           ]
-               }
+             }
 
-    d = {'LoggedTime'   : isodt,
-         'Events'       : rec.Events,
+    '''d = {'Events'       : rec.Events,
          'Others'       : others,
          'ACOutputPower': rec.ACOutputPower,
-         'KWH'          : rec.KWH 
+         'KWH'          : rec.KWH,
+         'HourlyKWH'    : rec.HourlyKWH
+        }'''
+    d = {'Events'       : rec.Events,
+         'Others'       : others,
+         'ACOutputPower': rec.ACOutputPower,
+         'KWH'          : rec.KWH,
         }
     return d
 
@@ -101,17 +86,12 @@ def create_meter_config_io():
          'last_editor': 'user', 
          'meta': {},
          'locked': False,
-         'channels': {'LoggedTime': create_string_channel('LoggedTime'),
-                      'Value': create_basic_channel('Value'),
-                     }
+         'channels': {'Value': create_basic_channel('Value')}
         }
     return d
 
 def creatre_meter_record_dict(rec):
-    isodt = datetime.now().replace(microsecond=0).isoformat() + '+00:00'
-    d = {'LoggedTime': isodt,
-         'Value': rec.Value,
-        }
+    d = {'Value': rec.Value}
     return d
 
 # ----------------------------------------------------------------------------
@@ -121,7 +101,7 @@ def create_gateway_config_io():
          'last_editor': 'user', 
          'meta': {},
          'locked': False,
-         'channels': { 'ServiceInfo': create_string_channel('ServiceInfo') }
+         'channels': { 'ServiceInfo': create_basic_channel('ServiceInfo', data_type='STRING', primitive_type='STRING') }
         }
     return d
 
@@ -135,11 +115,8 @@ def post_config_to_exosense(config_io_dict, token):
     headers = {'Content-Type': 'application/x-www-form-urlencoded',
                'charset': 'utf-8',
                'X-Exosite-CIK': token}
-
     response = requests.post(url, headers=headers, data=s)
     print(response)
-    print(response.headers)
-    print(response.text)
 
 
 def post_data_to_exosence(d, token):
@@ -153,9 +130,20 @@ def post_data_to_exosence(d, token):
     response = requests.post(url, headers=headers, data=s)
     print(response)
 
-# ----------------------------------------------------------------------------
-if __name__ == '__main__':
 
+def post_dataout_to_exosense(config_io_dict, token):
+    s = json.dumps(config_io_dict)
+    s = 'data_out=' + s
+
+    url = 'https://m21d2g4j50cu80000.m2.exosite.io/onep:v1/stack/alias'
+    headers = {'Content-Type': 'application/x-www-form-urlencoded',
+               'charset': 'utf-8',
+               'X-Exosite-CIK': token}
+    response = requests.post(url, headers=headers, data=s)
+    print(response)
+
+# ----------------------------------------------------------------------------
+def get_timestamp():
     url = 'https://m21d2g4j50cu80000.m2.exosite.io/timestamp'
     resp = requests.get(url)
     print(resp)
@@ -163,5 +151,32 @@ if __name__ == '__main__':
     dt = datetime.fromtimestamp(int(resp.text))
     print(dt)
     print(dt.timestamp())
+
+
+def long_polling():
+    token = 'ejrCJW7AC3Sud0c0y691bbUj7zSzT1YZqvsmu8FJ'
+    url = 'https://m21d2g4j50cu80000.m2.exosite.io/onep:v1/stack/alias?hourlykwh'
+    headers = {'Accept': 'application/x-www-form-urlencoded',
+               'charset': 'utf-8',
+               'X-Exosite-CIK': token,
+               'Request-Timeout': '30000'}
+    response = requests.get(url, headers=headers)
+    print(response)
+
+
+if __name__ == '__main__':
+    #get_timestamp()
+    #long_polling()
+
+    token = 'ejrCJW7AC3Sud0c0y691bbUj7zSzT1YZqvsmu8FJ'
+    url = 'https://m21d2g4j50cu80000.m2.exosite.io/onep:v1/stack/alias?hourlykwh'
+    headers = {'Accept': 'application/x-www-form-urlencoded',
+               'charset': 'utf-8',
+               'X-Exosite-CIK': token}
+    resp = requests.get(url, headers=headers)
+    print(resp)
+    print(resp.headers)
+    print(resp.text)
+
     pass
 

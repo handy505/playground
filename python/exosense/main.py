@@ -8,7 +8,7 @@ import random
 from datetime import datetime
 
 import exosense
-from ablerex import AblerexInverterSimulator
+from ablerex import AblerexInverterSimulator, GatewaySimulator
 from meter import IlluMeterSimulator, TempMeterSimulator
 
 
@@ -23,7 +23,6 @@ def activate():
     print(response.text)
 
 
-
 token1 = 'ejrCJW7AC3Sud0c0y691bbUj7zSzT1YZqvsmu8FJ'
 token2 = '3OkFwBFRDYuvfcFunfNJKAjTDNWS4sAOEpRJCoee'
 token3 = '7rHUQiXsciKCZ93jdf3GsreKSnfdxLKVwY4ZfC9X'
@@ -33,7 +32,6 @@ token6 = 'nVVY8yGCWFTsMaVH82L5nh4kc8IWePplKAShuIbK'
 token7 = 'ZGnRLjst9qdgu7xUti8DMLmh58B4mFINOsKGHvPs'
 token8 = 'LDXIwnEebOXZxnL7hpFV1Fr3Jf9ATw42DK5YpQjP'
 token9 = '2OIKqs26lXkSUlPvs2B9J2ZYak2PNAmygaCvUAB8'
-#token10 = '2OIKqs26lXkSUlPvs2B9J2ZYak2PNAmygaCvUAB8'
 token10 = 'abb428e4cdb1fa891c197811dd249e7c884c6cd9'
 
 token_dict = {'Ablerex_001': token1,
@@ -65,28 +63,8 @@ def get_token(id):
     return token_dict.get(device_name)
 
 
-class GatewaySimulator(object):
-    def __init__(self, id, mac, serviceid):
-        self.id = id
-        self.mac = mac
-        self.serviceid = serviceid
-
-    def __repr__(self):
-        return 'Gateway-{}'.format(self.id)
-
-    def sync_with_hardware(self):
-        pass
-
-    def create_config_io_dict(self):
-        return exosense.create_gateway_config_io()
-    
-    def create_record_dict(self):
-        info = "{}, {}".format(self.mac, self.serviceid)
-        result = {'ServiceInfo': info}
-        return result 
-
 def single_machine():
-    inv = AblerexInverterSimulator(10)
+    inv = AblerexInverterSimulator(1)
     d = inv.create_config_io_dict()
     print(d)
     t = get_token(inv.id)
@@ -95,7 +73,8 @@ def single_machine():
     while True:
         inv.sync_with_hardware()
         d = inv.create_record_dict()
-        print(d)
+        #print(d)
+        print(d.get('HourlyKWH'))
         t = get_token(inv.id)
         exosense.post_data_to_exosence(d, t)
         time.sleep(3)
@@ -115,15 +94,15 @@ def power_station():
     
 
     devices = [inv1, inv2, inv3, imeter4, tmeter5, gw6, inv7, inv8, gw9, inv10]
-    #devices = [inv1, inv2, inv3, inv7, inv8]
+    #devices = [inv1, inv2, inv3, inv7, inv8, inv10]
     #devices = [inv1]
 
-    '''# send config_io
+    #send config_io
     for device in devices:
         d = device.create_config_io_dict()
         t = get_token(device.id)
+        print('{} post config_io to exosense'.format(device))
         exosense.post_config_to_exosense(d, t)
-        '''
 
     # post data_in
     while True:
@@ -131,15 +110,16 @@ def power_station():
             device.sync_with_hardware()
             d = device.create_record_dict()
             t = get_token(device.id)
-            print('Post Device-{} at {}'.format(device.id, datetime.now()))
+            print('{} post data to exosense at {}'.format(device, datetime.now()))
             #print(d)
-            exosense.post_data_to_exosence(d, t)
-            #time.sleep(1)
+            try:
+                exosense.post_data_to_exosence(d, t)
+            except Exception as ex:
+                print(repr(ex))
+
         time.sleep(60)
-
-
-
 
 if __name__ == '__main__':
     #single_machine()
     power_station()
+
