@@ -101,7 +101,7 @@ def create_gateway_config_io():
          'last_editor': 'user', 
          'meta': {},
          'locked': False,
-         'channels': { 'ServiceInfo': create_basic_channel('ServiceInfo', data_type='STRING', primitive_type='STRING') }
+         'channels': { 'ServiceInfo': create_basic_channel('ServiceInfo', data_type='JSON', primitive_type='JSON') }
         }
     return d
 

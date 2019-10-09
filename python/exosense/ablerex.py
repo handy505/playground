@@ -167,10 +167,23 @@ class GatewaySimulator(object):
     def create_config_io_dict(self):
         return exosense.create_gateway_config_io()
     
-    def create_record_dict(self):
+    def create_record_dict_old(self):
         info = "{}, {}".format(self.mac, self.serviceid)
         result = {'ServiceInfo': info}
         return result 
+
+    def create_record_dict(self):
+        result = { 'ServiceInfo': {'MAC': self.mac, 'ServiceID': self.serviceid} }
+        return result 
+
+
+
+
+
+
+
+
+
 
 if __name__ == '__main__':
     inverters = [AblerexInverterSimulator(id) for id in range(1,7+1)]
