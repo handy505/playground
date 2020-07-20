@@ -25,6 +25,7 @@ class Record():
     def format_to_ablerex(self): pass
 
 class EventRecord(Record): pass
+
 class MeasurementRecord(Record): pass
 
 # ----------------------------------------------------
@@ -84,16 +85,17 @@ class SimuInverter(Device):
 
     def sync_with_hardware(self):
         print('Simu-{}.sync_with_hardware()'.format(self.id))
-        self.alarm_code.append(random.randint(0,1))
-        self.error_code.append(random.randint(0,1))
+        self.alarm_codes.append(random.randint(0,1))
+        self.error_codes.append(random.randint(0,1))
         self.volt       = random.randint(100,200)
         self.current    = random.randint(10,100)
 
 
 class DCBoxMeter(Device): pass
+
 class ADTecMeter(Device): pass
+
 class SimuMeter(Device): pass
-# ----------------------------------------------------
 
 def inverters_factory():
     result = [
@@ -103,8 +105,7 @@ def inverters_factory():
     ]
     return result
 
-    
-
+# ----------------------------------------------------
 def main():
 
     inverters = inverters_factory()
@@ -114,7 +115,17 @@ def main():
         inv.sync_with_hardware()
         time.sleep(1)
 
-    
 
 if __name__ == '__main__':
     main()
+
+
+'''
+pi@raspberrypi:~/demo/python/solarpi_arch $ python3 main.py 
+Ablerex-1
+KACO-2
+Simu-3
+Ablerex-1.sync_with_hardware()
+KACO-2.sync_with_hardware()
+Simu-3.sync_with_hardware()
+'''
