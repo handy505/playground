@@ -11,3 +11,12 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
+'''
+pi@raspberrypi:~/demo/python $ python3 chunks.py 
+abc
+def
+ghi
+jk
+'''
