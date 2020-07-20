@@ -5,16 +5,17 @@ from sympy import *
 import math
 
 
-TARGET_TEMP = 70
-TARGET_VOLUMN = 30
+TARGET_VOLUMN = 150
+
 HOT_TEMP = 100
+TARGET_TEMP = 70
 COLD_TEMP = 25
 
 
 def main():
   
     # hot_volumn + cold_volumn = target_volumn
-    # abs(target_tem - hot_temp)*hot_volumn = abs(target_temp - cold_temp)*cold_volumn
+    # abs(target_temp - hot_temp)*hot_volumn = abs(target_temp - cold_temp)*cold_volumn
     """
     x = Symbol('x')
     y = Symbol('y')
@@ -38,7 +39,7 @@ def main():
     f2 = x + y - TARGET_VOLUMN 
 
     sol = solve((f1, f2), x, y)
-    pprint(sol)
+    print(sol)
  
 
 if __name__ == "__main__":
