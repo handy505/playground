@@ -1,14 +1,20 @@
-# server side
+# basic tcp client server
+    $ python3 tcpserver.py
+    $ python3 tcpclient2.py
 
-$ python3 bhnet.py -l -p 9999 -c  
+
+# bhnet
+## server side
+
+    $ python3 bhnet.py -l -p 9999 -c  
 
 
-# client side
+## client side
 
-$ python3 bhnet.py -t 127.0.0.1 -p 9999
+    $ python3 bhnet.py -t 127.0.0.1 -p 9999
 
-Ctrl + D
+    Ctrl + D
 
-ls
+    ls
 
 
