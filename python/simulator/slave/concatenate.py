@@ -6,9 +6,7 @@ import serial
 
 
 class ModbusListener(threading.Thread):
-
-#class ConcatThread(threading.Thread):
-    def __init__(self, pvgroup=None, imeter=None, tmeter=None):
+    def __init__(self, pvgroup=None, imeter=None, tmeter=None, callback=None):
         threading.Thread.__init__(self)       
         self.pvgroup = pvgroup
         self.imeter = imeter
@@ -16,6 +14,8 @@ class ModbusListener(threading.Thread):
         self.ser = serial.Serial(port='/dev/ttyUSB0', baudrate=9600)
         self.running = True
 
+        print('callback: {}'.format(callback))
+        self.callback = callback
 
     def run(self):
         rxlen = 0
@@ -37,13 +37,19 @@ class ModbusListener(threading.Thread):
                         checktime = time.time()
             elif mode == 'timeout':
                 rxpacket = self.ser.read(self.ser.in_waiting)
-                self.processing(rxpacket)
+
+                #self.processing(rxpacket)
+                txpacket = self.callback(rxpacket)
+                if txpacket:
+                    self.ser.write(txpacket)
+                    self.ser.flush()
+
                 mode = 'idle'
                 rxlen = 0
             time.sleep(0.01)
 
 
-    def processing(self, rxpacket):
+    '''def processing(self, rxpacket):
         s = ' '.join(['{:02x}'.format(b) for b in rxpacket]) # debug
         print('{:.3f}: {}'.format(time.time(), s))
 
@@ -68,3 +74,14 @@ class ModbusListener(threading.Thread):
             self.ser.write(txpacket)
             self.ser.flush()
             return
+            '''
+            
+def echo(pkt):
+    print('echo: {}'.format(pkt))
+    return pkt
+
+if __name__ == '__main__':
+
+    m = ModbusListener(callback=echo)
+    m.start()
+

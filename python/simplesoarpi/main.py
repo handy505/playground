@@ -8,41 +8,29 @@ import threading
 from datetime import datetime
 from collections import namedtuple
 
+class GetIVCurveCommand(object):
+    def execute(self):
+        print('get ivcurve ')
+        time.sleep(1)
 
-class Counter(object):
-    def __init__(self):
-        self.count = 0
 
-    def increment(self, offset):
-        self.count += offset
-
-class IncrementThread(threading.Thread):
-    def __init__(self, counter):
-        super().__init__()
-        self.counter = counter
-
-    def run(self):
-        for _ in range(0,100000):
-            self.counter.increment(1)
-
+class GetInvFirmwareVersion(object):
+    def execute(self):
+        print('get firmware version')
+        time.sleep(1)
 
 
 def main():
+    commands = []
+    c = GetIVCurveCommand()
+    commands.append(c)
 
-    c = Counter()
-
-    threads = [IncrementThread(c) for _ in range(0, 6)]
-    print(threads)
-    #sys.exit()
-    
-    for t in threads:
-        t.start()
+    c = GetInvFirmwareVersion()
+    commands.append(c)
 
 
-    for t in threads:
-        t.join()
-
-    print(c.count)
+    for c in commands:
+        c.execute()
 
 if __name__ == '__main__':
     main()
