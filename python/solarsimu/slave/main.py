@@ -53,15 +53,16 @@ class MainThread(threading.Thread):
 
 
     def response_modbus_packet(self, rxpacket):
-        #print('{:.3f}: {}'.format(time.time(), dumphex(rxpacket)))
+        print('{:.3f}: {}'.format(time.time(), dumphex(rxpacket)))
         #print('[35;42m{:.3f}:[m {}'.format(time.time(), dumphex(rxpacket)))
 
         
         #print('[31m{:.3f}:[m {}'.format(time.time(), dumphex(rxpacket)))
 
-        import random
+        '''import random
         c = random.randint(31, 37)
         print('[{}m{:.3f}:[m {}'.format(c, time.time(), dumphex(rxpacket)))
+        '''
 
         for i, pv in enumerate(self.inverters):
             try:
