@@ -5,22 +5,23 @@ import threading
 import serial
 
 
-class ConcatThread(threading.Thread):
+class ModbusListener(threading.Thread):
+
+#class ConcatThread(threading.Thread):
     def __init__(self, pvgroup=None, imeter=None, tmeter=None):
         threading.Thread.__init__(self)       
         self.pvgroup = pvgroup
         self.imeter = imeter
         self.tmeter = tmeter
         self.ser = serial.Serial(port='/dev/ttyUSB0', baudrate=9600)
-        #self.ser = serial.Serial(port='/dev/ttyUSB0', baudrate=57600)
-        self.looping = True
+        self.running = True
 
 
     def run(self):
         rxlen = 0
         mode = 'idle'
         checktime = time.time() 
-        while self.looping:
+        while self.running:
             if mode == 'idle':
                 if self.ser.in_waiting > rxlen:
                     rxlen = self.ser.in_waiting
@@ -46,10 +47,8 @@ class ConcatThread(threading.Thread):
         s = ' '.join(['{:02x}'.format(b) for b in rxpacket]) # debug
         print('{:.3f}: {}'.format(time.time(), s))
 
-        #for i, pv in enumerate(self.pvgroup.pool):
         for i, pv in enumerate(self.pvgroup):
             try:
-                #txpacket = pv.response_jbus_query_packet(rxpacket)
                 txpacket = pv.read_memory_by_jbus(rxpacket)
                 if txpacket:
                     self.ser.write(txpacket)
@@ -58,14 +57,12 @@ class ConcatThread(threading.Thread):
             except ValueError as ex: 
                 pass
 
-        #txpacket = self.imeter.response_jbus_query(rxpacket)
         txpacket = self.imeter.read_memory_by_jbus(rxpacket)
         if txpacket:
             self.ser.write(txpacket)
             self.ser.flush()
             return
 
-        #txpacket = self.tmeter.response_jbus_query(rxpacket)
         txpacket = self.tmeter.read_memory_by_jbus(rxpacket)
         if txpacket:
             self.ser.write(txpacket)

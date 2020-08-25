@@ -6,7 +6,24 @@ import random
 import datetime
 import serial
 
-ser = serial.Serial(port='/dev/ttyUSB0', baudrate=9600, timeout=0.8)
+ser = serial.Serial(port='/dev/ttyUSB1', baudrate=9600, timeout=0.8)
+
+
+def hexdump(src, length=16):
+    '''
+    reference to http://code.activestate.com/recipes/142812-hex-dumper/
+    modity python2 to python3
+    '''
+    result = []
+    digits = 4 if isinstance(src, bytes) else 2
+    for i in range(0, len(src), length):
+        s = src[i:i+length]
+        hexa = ' '.join(['{:>02X}'.format(x) for x in s])
+        text = ''.join([chr(x) if 0x20 <= x < 0x7F else '.' for x in s])
+        line = '{:>04} {:<48s} {}'.format(i, hexa, text)
+        result.append(line) 
+    return '\n'.join(result)
+
 
 def load():
     lines = []
@@ -16,6 +33,7 @@ def load():
             t = (i, s)
             lines.append(t)
     return lines
+
 
 def main():
     print('IPV Box Simulator')
@@ -34,7 +52,7 @@ def main():
             time.sleep(0.2) # wait for machine processing 
             time.sleep(1) # force wait
             rxpacket = ser.read(ser.in_waiting)
-            print(' '.join(['{:02x}'.format(b) for b in rxpacket]))
+            print(hexdump(rxpacket))
 
             time.sleep(1)
 
