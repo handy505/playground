@@ -42,7 +42,8 @@ def main():
 
     while True:
         for line in lines:
-            print('[#{}] {}'.format(line[0], line[1]))
+            #print('[#{}] {}'.format(line[0], line[1]))
+            print('[32m[#{:>02}] {}[m'.format(line[0], line[1]))
             txpacket = bytearray.fromhex(line[1])
 
             ser.reset_output_buffer()

@@ -47,6 +47,12 @@ class MemoryMapping(object):
             self.memory[idx] = v
             
 
+def ut():
+    from memorymapping import MemoryMapping
+    mm = MemoryMapping(0xC000, 0xC07F) 
+    print(mm)
+    mm.write(0xC000, 100)
+    print(mm.read(0xC000))
 
 
 if __name__ == '__main__':

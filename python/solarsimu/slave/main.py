@@ -9,6 +9,7 @@ import crc
 import memorymapping
 import concatenate
 import devices
+from invertersimu import InverterSimulator
 
 def dumphex(pkt):
     result = ' '.join(['{:02x}'.format(b) for b in pkt]) # debug
@@ -21,20 +22,15 @@ class MainThread(threading.Thread):
 
         self.inverters = []
         for id in range(1, 3):
-            inv = devices.Inverter(id)
+            #inv = devices.Inverter(id)
+            inv = InverterSimulator(id)
             print(inv)
             self.inverters.append(inv)
 
         self.imeter = devices.DCBoxIlluMeter(11)
         self.tmeter = devices.DCBoxTempMeter(10)
 
-        '''self.modbuslistener = concatenate.ModbusListener(self.inverters, 
-                                                         self.imeter, 
-                                                         self.tmeter)
-                                                         '''
-
         self.modbuslistener = concatenate.ModbusListener(callback=self.response_modbus_packet)
-
 
 
 
@@ -64,9 +60,10 @@ class MainThread(threading.Thread):
         print('[{}m{:.3f}:[m {}'.format(c, time.time(), dumphex(rxpacket)))
         '''
 
-        for i, pv in enumerate(self.inverters):
+        for inv in self.inverters:
             try:
-                result = pv.read_memory_by_jbus(rxpacket)
+                #result = pv.read_memory_by_jbus(rxpacket)
+                result = inv.read_memory_by_modbus(rxpacket)
                 return result
             except ValueError as ex: 
                 pass
@@ -78,12 +75,7 @@ class MainThread(threading.Thread):
         return result 
 
 
-def main():
+if __name__ == '__main__':
     print('PV Inverter simulator')
     mainthread = MainThread()
     mainthread.start()
-
-
-if __name__ == '__main__':
-
-    main()
