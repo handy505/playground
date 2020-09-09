@@ -84,8 +84,9 @@ class InverterSimulator(object):
 
     def read_memory_by_modbus(self, pkt):
         result = read_memory_by_modbus(1, self.mm, pkt)
-        if result:
+        '''if result:
             print(dumphex(result))
+            '''
         return result
 
 if __name__ == '__main__':

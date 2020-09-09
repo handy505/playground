@@ -4,6 +4,10 @@ import time
 import threading
 import serial
 
+def dumphex(pkt):
+    result = ' '.join(['{:02x}'.format(b) for b in pkt]) # debug
+    return result
+
 
 class ModbusListener(threading.Thread):
     def __init__(self, pvgroup=None, imeter=None, tmeter=None, callback=None):
@@ -41,6 +45,7 @@ class ModbusListener(threading.Thread):
                 #self.processing(rxpacket)
                 txpacket = self.callback(rxpacket)
                 if txpacket:
+                    print('[32m{}[m'.format(dumphex(txpacket)))
                     self.ser.write(txpacket)
                     self.ser.flush()
 
