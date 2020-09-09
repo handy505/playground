@@ -28,18 +28,18 @@ def main():
 
     ct = collector.Collector(abus)
     rt = recorderdb.RecorderDB(abus, bbus, cbus)
-    ut = uploader.Uploader(bbus, cbus)
-    ht = hearbeat.Hearbeat()
+    #ut = uploader.Uploader(bbus, cbus)
+    #ht = hearbeat.Hearbeat()
 
     ct.start()
     rt.start()
-    ut.start()
-    ht.start()
+    #ut.start()
+    #ht.start()
 
     ct.join()
     rt.join()
-    ut.join()
-    ht.join()
+    #ut.join()
+    #ht.join()
 
 
 if __name__ == '__main__':

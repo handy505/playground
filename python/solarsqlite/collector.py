@@ -17,21 +17,17 @@ class Collector(threading.Thread):
 
 
     def run(self):
-    
         pvgroup = [pvinverter.PVInverter(i) for i in range(1,3)]
         [print(pv) for pv in pvgroup]
 
-
         imeter = meter.DCBoxMeter(id=10, port=None, brand='DCBox', type='illu')
         tmeter = meter.DCBoxMeter(id=11, port=None, brand='DCBox', type='temp')
-
 
         minutely_datetime = datetime.datetime.now()
         while True:
 
             [pv.sync_with_hardware() for pv in pvgroup]
             #[print(pv) for pv in pvgroup]
-
 
             # event
             for pv in pvgroup:
@@ -40,7 +36,6 @@ class Collector(threading.Thread):
                     self.obus.event.put(e)
                 pv.events.clear()
 
-
             if datetime.datetime.now().minute != minutely_datetime.minute:
                 print('New minute: {}'.format(datetime.datetime.now().minute))
                 for pv in pvgroup:
@@ -48,16 +43,13 @@ class Collector(threading.Thread):
                     print('Generate new measurement: {}'.format(r))
                     self.obus.measure.put(r)
 
-
                 r = imeter.read()
                 print('Generate new illu: {}'.format(r))
                 self.obus.illu.put(r)
 
-
                 r = tmeter.read()
                 print('Generate new temp: {}'.format(r))
                 self.obus.temp.put(r)
-
 
                 minutely_datetime = datetime.datetime.now()
 
