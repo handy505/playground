@@ -1,3 +1,4 @@
+// Earth Canon method. No Decorator.
 
 class A{
     private String message;
@@ -26,3 +27,9 @@ public class DecoratorDemo1{
     }
 }
 
+/*
+handy@ubuntu:~/demo/design_patterns/decorator/java/decorator1$ java DecoratorDemo1 
+DecoratorDemo
+<u>DecoratorDemo</u>
+<b><u>DecoratorDemo</u></b>
+*/

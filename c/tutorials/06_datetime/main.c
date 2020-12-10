@@ -20,3 +20,12 @@ int main(void){
     printf("%s\n", s);
 
 }
+
+/*
+$ ./a.out 
+now in seconds: 1607505281
+ctime: Wed Dec  9 17:14:41 2020
+0x7fff7e852020
+0x7fc5d2d871c0
+2020-12-09 17:14:41
+*/

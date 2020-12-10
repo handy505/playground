@@ -1,5 +1,4 @@
-// Use Composition
-
+// Use Inheritance
 class A{
     private String message;
 
@@ -12,20 +11,21 @@ class A{
     }
 }
 
-class B{
+class B extends A{
     private A origin;
 
     B(A a){
         origin = a;
     }
     
+    @Override
     public String get_message(){
         return "<b>" + origin.get_message() + "</b>";
     }
 
 }
 
-public class DecoratorDemo2{
+public class DecoratorDemo3{
     public static void main(String[] args){
 
         A a = new A();
@@ -38,7 +38,7 @@ public class DecoratorDemo2{
 }
 
 /*
-handy@ubuntu:~/demo/design_patterns/decorator/java/decorator2$ java DecoratorDemo2 
+handy@ubuntu:~/demo/design_patterns/decorator/java/decorator3$ java DecoratorDemo3
 DecoratorDemo
 <b>DecoratorDemo</b>
 */
