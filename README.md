@@ -1,1 +1,3 @@
-# Note, Demostrate, Share
+# Note it.
+# Demostrate it.
+# Share it.
