@@ -27,6 +27,10 @@ def create_machine(brand, id):
 
 
 def main():
+    #m1 = DeltaMachine(1)
+    #m2 = SchneiderMachine(2)
+
+    # basic to simple factory
     m1 = create_machine('Delta', 1)
     m2 = create_machine('Schneider', 2)
 

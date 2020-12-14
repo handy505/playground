@@ -29,3 +29,10 @@ def main():
 if __name__ == '__main__':
     main()
 
+
+'''
+$ python3 01_basic.py 
+Delta-1
+Schneider-2
+
+'''
