@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from datetime import datetime
 from collections import namedtuple
+import time
 
 
 Record = namedtuple('Record', ['DeviceID', 'LoggedDatetime', 'KW', 'KWH'])
@@ -20,3 +21,6 @@ class Inverter(object):
 
     def get_namedtuple_record(self):
         return Record(self.id, datetime.now(), self.kw, self.kwh)
+
+    def sync_with_hardware(self):
+        time.sleep(0.5)

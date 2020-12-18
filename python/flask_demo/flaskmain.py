@@ -1,25 +1,22 @@
 from flask import Flask
 from flask import render_template
+from datetime import datetime
 
 from backend import MainThread
 
 
-app     = Flask(__name__)
-mthread = MainThread()
+app = Flask(__name__)
 
 
 @app.route('/')
 def index():
-   
-    records = []
-    for inv in mthread.inverters:
-        rec = inv.get_record()
-        records.append(rec)
+
+    records = [inv.get_record() for inv in mthread.inverters]
         
-    #return '<p>Hello</p>'
-    return render_template('home.html', records=records)
+    return render_template('index.html', records=records)
 
 
 if __name__ == '__main__':
+    mthread = MainThread()
     mthread.start()
-    app.run(debug=True)
+    app.run(debug=False)

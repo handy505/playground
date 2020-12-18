@@ -10,33 +10,30 @@ from collector import CollectorThread
 
 
 class MainThread(threading.Thread):
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
     def __init__(self):
         super().__init__()
 
-        self.inverters = self.create_inverters()
+        self.inverters = [Inverter(id) for id in range(1, 3)]
         [print(inv) for inv in self.inverters]
+        
 
         self.cthread = CollectorThread(self.inverters)
+        
 
+        print('*** Backend main thread initialize DONE')
 
     def run(self):
         self.cthread.start()
 
         while True:
-            #print('mainthread: system maintain')
             time.sleep(3)
-
-
-    def now(self):
-        return datetime.now()
-
-
-    def create_inverters(self):
-        result = [] 
-        for id in range(1, 20):
-            inv = Inverter(id)
-            result.append(inv)
-        return result
 
 
 if __name__ == '__main__':
