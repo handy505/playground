@@ -16,6 +16,12 @@ def index():
     return render_template('index.html', records=records)
 
 
+@app.route('/api/getdatetime')
+def api_datetime():
+    s = '<h1>{}</h1>'.format(str(datetime.now()))
+    return s
+
+
 if __name__ == '__main__':
     mthread = MainThread()
     mthread.start()
