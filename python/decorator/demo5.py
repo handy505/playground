@@ -9,7 +9,7 @@ class EveryXSeconds(object):
         self.last_time = time.time()
 
     def __call__(self, func):
-        def wrapper(*args, **wkargs):
+        def wrapper():
             if time.time() - self.last_time > self.seconds:
                 func()
                 self.last_time = time.time()
