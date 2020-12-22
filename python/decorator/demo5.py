@@ -17,7 +17,7 @@ class EveryXSeconds(object):
         return wrapper
 
 
-@EveryXSeconds(3)
+#@EveryXSeconds(3)
 def do_job():
     print(time.time())
 
@@ -27,3 +27,16 @@ if __name__ == '__main__':
     while True:
         do_job()
 
+'''
+output1: unuse decorator:
+1608624805.0863774
+1608624805.0864005
+1608624805.0864198
+
+-----------------------------
+output2: use decorator:
+1608624735.2194827
+1608624738.2195969
+1608624741.2196589
+
+'''
