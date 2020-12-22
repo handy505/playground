@@ -6,7 +6,6 @@ import functools
 class EveryXSeconds(object):
     def __init__(self, seconds):
         self.seconds = seconds
-
         self.last_time = time.time()
 
     def __call__(self, func):
@@ -17,13 +16,12 @@ class EveryXSeconds(object):
         return wrapper
 
 
-#@EveryXSeconds(3)
+@EveryXSeconds(3)
 def do_job():
     print(time.time())
 
 
 if __name__ == '__main__':
-    start = time.time()
     while True:
         do_job()
 
