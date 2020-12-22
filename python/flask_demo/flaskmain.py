@@ -16,7 +16,7 @@ def index():
     return render_template('index.html', records=records)
 
 
-@app.route('/api/getdatetime')
+@app.route('/api/datetime')
 def api_datetime():
     s = '<h1>{}</h1>'.format(str(datetime.now()))
     return s

@@ -15,25 +15,30 @@ class CollectorThread(threading.Thread):
         self.dbproxy = DBProxy()
         self.dbproxy.create_table()
 
-        self.datetime_of_output_action = datetime.now()
+        self.datetime_of_write_records = datetime.now()
 
 
     def run(self):
         while True:
+            self.sync_all_inverters()
+            self.polling_write_record_schedule()
+            time.sleep(3)
+
+
+    def sync_all_inverters(self):
+        for inv in self.inverters:
+            inv.sync_with_hardware()
+
+
+    def polling_write_record_schedule(self):
+        # every minute
+        if datetime.now().minute != self.datetime_of_write_records.minute:
+
             for inv in self.inverters:
-                inv.sync_with_hardware()
-
-            
-            # every minute
-            if datetime.now().minute != self.datetime_of_output_action.minute:
-
                 rec = inv.get_record()
                 self.dbproxy.insert_record(rec)
                     
-                self.datetime_of_output_action = datetime.now()
-
-            time.sleep(3)
-
+            self.datetime_of_write_records = datetime.now()
 
 
 
