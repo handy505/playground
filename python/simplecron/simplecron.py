@@ -82,23 +82,3 @@ class Job(object):
 
         return True
 
-
-class Action1Command(object):
-    def execute(self):
-        print('action1 at {}'.format(datetime.now()))
-
-
-class Action2Command(object):
-    def execute(self):
-        print('action2 at {}'.format(datetime.now()))
-        
-
-if __name__ == '__main__':
-    s = Scheduler()
-    s.add_job(Job('* * * * *', Action1Command()))
-    s.add_job(Job('10,11,12 * * * *', Action2Command()))
-
-    while True:
-        s.run()
-        time.sleep(1)
-
