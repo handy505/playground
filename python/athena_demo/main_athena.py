@@ -84,22 +84,21 @@ class UploaderThread(threading.Thread):
 
 if __name__ == '__main__':
 
-    csch = Scheduler()
-
     machines = [Machine(id) for id in range(1,4)]
-
     commands = [SyncWithHardwareCommand(m) for m in machines]
+
+
+    csch = Scheduler()
     [csch.add_job(Job('* * * * *', c)) for c in commands]
+
 
     dbhandler = DBHandler()
     c = InsertAllMachineRecordToDatabaseCommand(machines, dbhandler)
     csch.add_job(Job('* * * * *', c))
 
 
-
     usch = Scheduler()
     usch.add_job(Job('*/3 * * * *', UploadUnuploadedRecords(dbhandler)))
-
 
 
     cthread = CollectorThread(csch)
