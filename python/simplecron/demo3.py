@@ -5,7 +5,7 @@ from collections import namedtuple
 
 
 from simplecron import Scheduler, Job
-from dbproxy import DBHandler
+from dbhandler import DBHandler
 
 Record = namedtuple('Record', ['DeviceID', 'LoggedDatetime', 'KW', 'KWH'])
 
@@ -57,6 +57,8 @@ class UploadUnuploadedRecords(object):
         time.sleep(10)
         print('(DEBUG) UploadUnuploadedRecords.execute() at {}'.format(datetime.now()))
 
+        uids = [r[0] for r in rows]
+        [self.dbhandler.update_uploaded_row_by_uid(uid) for uid in uids]
 
 
 # Keep SRP !!!
@@ -96,7 +98,7 @@ if __name__ == '__main__':
 
 
     usch = Scheduler()
-    usch.add_job(Job('0,17,30 * * * *', UploadUnuploadedRecords(dbhandler)))
+    usch.add_job(Job('*/3 * * * *', UploadUnuploadedRecords(dbhandler)))
 
 
 

@@ -3,10 +3,10 @@ from datetime import datetime
 
 
 class DBHandler(object):
-    def __init__(self):
-        self.dbconn = sqlite3.connect('data.sqlite', check_same_thread=False, timeout=10)
+    def __init__(self, inmemory=False):
+        if not inmemory: self.dbconn = sqlite3.connect('data.sqlite', check_same_thread=False, timeout=10)
+        else:            self.dbconn = sqlite3.connect('file::memory:?cache=shared')
         self.create_table()
-
 
 
     def create_table(self):
@@ -41,6 +41,7 @@ class DBHandler(object):
             rows = c.fetchall()
             return rows
 
+
     def read_unuploaded_rows(self):
         with self.dbconn:
             c = self.dbconn.cursor()
@@ -51,8 +52,16 @@ class DBHandler(object):
             return rows
 
 
+    def update_uploaded_row_by_uid(self, uid):
+        with self.dbconn:
+            c = self.dbconn.cursor()
+            sql = '''UPDATE measurements SET uploaded = 1 
+                     WHERE uid == ?'''
+            c.execute(sql, (uid,))
+            self.dbconn.commit()
 
-    def update_uploaded_by_uid(self, uid):
+
+    def update_uploaded_row_by_less_then_uid(self, uid):
         with self.dbconn:
             c = self.dbconn.cursor()
             sql = '''UPDATE measurements SET uploaded = 1 
@@ -67,12 +76,8 @@ class DBHandler(object):
 
 
 if __name__ == '__main__':
-
-
-    p = DBHandler()
-
-
-    rows = p.read_unuploaded_rows()
+    h = DBHandler()
+    rows = h.read_unuploaded_rows()
     [print(r) for r in rows]
 
 
