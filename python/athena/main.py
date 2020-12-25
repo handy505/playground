@@ -4,10 +4,12 @@ from datetime import datetime
 from collections import namedtuple
 
 
-from simplecron import Scheduler, Job
+from cronscheduler import Scheduler, Job
 from dbhandler import DBHandler
 
+
 Record = namedtuple('Record', ['DeviceID', 'LoggedDatetime', 'KW', 'KWH'])
+
 
 class Machine(object):
     def __init__(self, id):
@@ -43,11 +45,10 @@ class InsertAllMachineRecordToDatabaseCommand(object):
         for m in self.machines:
             r = m.get_record()
             self.dbhandler.insert_record(r)
-
         print('(DEBUG) InsertAllMachineRecordToDatabaseCommand.execute() at {}'.format(datetime.now()))
 
 
-class UploadUnuploadedRecords(object):
+class UploadUnuploadedRecordsCommand(object):
     def __init__(self, dbhandler):
         self.dbhandler = dbhandler
 
@@ -55,7 +56,7 @@ class UploadUnuploadedRecords(object):
         rows = self.dbhandler.read_unuploaded_rows()
         [print(r) for r in rows]
         time.sleep(10)
-        print('(DEBUG) UploadUnuploadedRecords.execute() at {}'.format(datetime.now()))
+        print('(DEBUG) UploadUnuploadedRecordsCommand.execute() at {}'.format(datetime.now()))
 
         uids = [r[0] for r in rows]
         [self.dbhandler.update_uploaded_row_by_uid(uid) for uid in uids]
@@ -98,7 +99,7 @@ if __name__ == '__main__':
 
 
     usch = Scheduler()
-    usch.add_job(Job('*/3 * * * *', UploadUnuploadedRecords(dbhandler)))
+    usch.add_job(Job('*/3 * * * *', UploadUnuploadedRecordsCommand(dbhandler)))
 
 
     cthread = CollectorThread(csch)
