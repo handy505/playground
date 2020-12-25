@@ -1,65 +1,13 @@
 import time
 import threading
 from datetime import datetime
-from collections import namedtuple
 
 
 from cronscheduler import Scheduler, Job
 from dbhandler import DBHandler
+from machine import Machine
+import commands as cmd
 
-
-Record = namedtuple('Record', ['DeviceID', 'LoggedDatetime', 'KW', 'KWH'])
-
-
-class Machine(object):
-    def __init__(self, id):
-        self.id = id
-        self.kw = 52
-        self.kwh = 100
-
-    def __str__(self):
-        return 'Machine-{}'.format(self.id)
-
-    def sync_with_hardware(self):
-        time.sleep(0.2)
-        print('(DEBUG) {} sync_with_hardware at {}'.format(self, datetime.now()))
-
-    def get_record(self):
-        return Record(self.id, datetime.now(), self.kw, self.kwh)
-
-
-class SyncWithHardwareCommand(object):
-    def __init__(self, machine):
-        self.machine = machine
-
-    def execute(self):
-        self.machine.sync_with_hardware()
-
-
-class InsertAllMachineRecordToDatabaseCommand(object):
-    def __init__(self, machines, dbhandler):
-        self.machines = machines
-        self.dbhandler = dbhandler
-   
-    def execute(self):
-        for m in self.machines:
-            r = m.get_record()
-            self.dbhandler.insert_record(r)
-        print('(DEBUG) InsertAllMachineRecordToDatabaseCommand.execute() at {}'.format(datetime.now()))
-
-
-class UploadUnuploadedRecordsCommand(object):
-    def __init__(self, dbhandler):
-        self.dbhandler = dbhandler
-
-    def execute(self):
-        rows = self.dbhandler.read_unuploaded_rows()
-        [print(r) for r in rows]
-        time.sleep(10)
-        print('(DEBUG) UploadUnuploadedRecordsCommand.execute() at {}'.format(datetime.now()))
-
-        uids = [r[0] for r in rows]
-        [self.dbhandler.update_uploaded_row_by_uid(uid) for uid in uids]
 
 
 # Keep SRP !!!
@@ -86,7 +34,7 @@ class UploaderThread(threading.Thread):
 if __name__ == '__main__':
 
     machines = [Machine(id) for id in range(1,4)]
-    commands = [SyncWithHardwareCommand(m) for m in machines]
+    commands = [cmd.SyncWithHardwareCommand(m) for m in machines]
 
 
     csch = Scheduler()
@@ -94,12 +42,12 @@ if __name__ == '__main__':
 
 
     dbhandler = DBHandler()
-    c = InsertAllMachineRecordToDatabaseCommand(machines, dbhandler)
+    c = cmd.InsertAllMachineRecordToDatabaseCommand(machines, dbhandler)
     csch.add_job(Job('* * * * *', c))
 
 
     usch = Scheduler()
-    usch.add_job(Job('*/3 * * * *', UploadUnuploadedRecordsCommand(dbhandler)))
+    usch.add_job(Job('*/3 * * * *', cmd.UploadUnuploadedRecordsCommand(dbhandler)))
 
 
     cthread = CollectorThread(csch)

@@ -32,22 +32,22 @@ class DBHandler(object):
                             rec.KWH)) 
 
 
-    def read_from_uid(self, uid):
+    def read_from_uid(self, uid, limit=10):
         with self.dbconn:
             c = self.dbconn.cursor()
             sql = '''SELECT * FROM measurements 
-                     WHERE uid > ? LIMIT 10'''
-            c.execute(sql, (uid,))
+                     WHERE uid > ? LIMIT ?'''
+            c.execute(sql, (uid, limit,))
             rows = c.fetchall()
             return rows
 
 
-    def read_unuploaded_rows(self):
+    def read_unuploaded_rows(self, limit=10):
         with self.dbconn:
             c = self.dbconn.cursor()
             sql = '''SELECT * FROM measurements 
-                     WHERE uploaded == 0 ORDER BY uid ASC LIMIT 10'''
-            c.execute(sql)
+                     WHERE uploaded == 0 ORDER BY uid ASC LIMIT ?'''
+            c.execute(sql, (limit, ))
             rows = c.fetchall()
             return rows
 
