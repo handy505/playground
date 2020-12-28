@@ -4,6 +4,7 @@ bondpy==1.8.6
 camera-calibration==1.15.2
 camera-calibration-parsers==1.12.0
 catkin==0.8.8
+click==7.1.2
 controller-manager==0.19.2
 controller-manager-msgs==0.19.2
 cv-bridge==1.15.0
@@ -11,6 +12,8 @@ diagnostic-analysis==1.10.2
 diagnostic-common-diagnostics==1.10.2
 diagnostic-updater==1.10.2
 dynamic-reconfigure==1.7.1
+Flask==1.1.2
+Flask-WTF==0.14.3
 gazebo-plugins==2.9.1
 gazebo-ros==2.9.1
 gencpp==0.6.5
@@ -21,9 +24,12 @@ gennodejs==2.0.2
 genpy==0.6.14
 image-geometry==1.15.0
 interactive-markers==1.12.0
+itsdangerous==1.1.0
+Jinja2==2.11.2
 joint-state-publisher==1.15.0
 joint-state-publisher-gui==1.15.0
 laser-geometry==1.6.5
+MarkupSafe==1.1.1
 message-filters==1.15.8
 python-qt-binding==0.4.3
 qt-dotgraph==0.4.2
@@ -95,4 +101,6 @@ tf2-kdl==0.7.5
 tf2-py==0.7.5
 tf2-ros==0.7.5
 topic-tools==1.15.8
+Werkzeug==1.0.1
+WTForms==2.3.3
 xacro==1.14.4
