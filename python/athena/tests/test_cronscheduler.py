@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import  MagicMock
 from datetime import datetime
 
-from simplecron import Job
+from cronscheduler import Job
 
 def action1():
     print('action1')

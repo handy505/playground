@@ -3,7 +3,7 @@ from unittest.mock import  MagicMock
 from datetime import datetime
 
 from dbhandler import DBHandler
-from demo3 import Record 
+from machine import Record 
 
 
 
