@@ -24,7 +24,7 @@ class InsertAllMachineRecordToDatabaseCommand(object):
         for m in self.machines:
             r = m.get_record()
             self.dbhandler.insert_record(r)
-        print('(DEBUG) InsertAllMachineRecordToDatabaseCommand.execute() at {}'.format(datetime.now()))
+        print('(DEBUG) {} execute at {}'.format(__class__, datetime.now()))
 
 
 class UploadUnuploadedRecordsCommand(object):
@@ -35,7 +35,8 @@ class UploadUnuploadedRecordsCommand(object):
         rows = self.dbhandler.read_unuploaded_rows()
         [print(r) for r in rows]
         time.sleep(10)
-        print('(DEBUG) UploadUnuploadedRecordsCommand.execute() at {}'.format(datetime.now()))
+        print('(DEBUG) {} execute at {}'.format(__class__, datetime.now()))
+
 
         uids = [r[0] for r in rows]
         [self.dbhandler.update_uploaded_row_by_uid(uid) for uid in uids]

@@ -1,7 +1,14 @@
 from flask import Flask
 from flask import render_template
+
+from flask_wtf import FlaskForm
+from wtforms import StringField, SubmitField
+from wtforms.validators import DataRequired
+from flask_bootstrap import Bootstrap
+
 from datetime import datetime
 import threading
+
 
 from cronscheduler import Scheduler, Job
 from dbhandler import DBHandler
@@ -9,12 +16,39 @@ from machine import Machine
 import commands as cmd
 
 
+
 app = Flask(__name__)
+bootstrap = Bootstrap(app)
+
+app.config['SECRET_KEY'] = 'mysecret'
 
 
-@app.route('/')
+class NameForm(FlaskForm):
+    name   = StringField('What is your name ?', validators=[DataRequired()])
+    submit = SubmitField('Submit')
+
+
+
+
+@app.route('/', methods=['GET', 'POST'])
 def index():
-    return '<h1>Hello</h1>'
+    #return '<h1>Hello</h1>'
+    #return render_template('index.html')
+
+    name = None
+    form = NameForm()
+    if form.validate_on_submit():
+        name = form.name.data
+        form.name.data = ''
+    return render_template('index2.html', form=form, name=name)
+    
+
+
+
+@app.route('/test')
+def test():
+    return render_template('test.html')
+
         
 
 @app.route('/user/<username>')
@@ -60,7 +94,6 @@ if __name__ == '__main__':
 
     uthread = threading.Thread(target=uscheduler.run)
     uthread.start()
-
 
 
     app.run(debug=True)
