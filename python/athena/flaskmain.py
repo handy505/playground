@@ -58,7 +58,7 @@ def hello_user(username):
 
 @app.route('/records')
 def get_records():
-    rows = dbhandler.read_unuploaded_rows(500) 
+    rows = dbhandler.read_unuploaded_rows(1000) 
     return render_template('records.html', records=rows)
 
 
@@ -70,22 +70,23 @@ def api_datetime():
 
 if __name__ == '__main__':
 
+    cscheduler = Scheduler()
+    uscheduler = Scheduler()
+    dbhandler  = DBHandler()
+
+
+
     machines = [Machine(id) for id in range(1,4)]
     commands = [cmd.SyncWithHardwareCommand(m) for m in machines]
-
-
-    cscheduler = Scheduler()
     [cscheduler.add_job(Job('* * * * *', c)) for c in commands]
 
 
-    dbhandler = DBHandler()
     c = cmd.InsertAllMachineRecordToDatabaseCommand(machines, dbhandler)
     cscheduler.add_job(Job('* * * * *', c))
 
 
-    uscheduler = Scheduler()
-    uscheduler.add_job(Job('*/3 * * * *', cmd.UploadUnuploadedRecordsCommand(dbhandler)))
-
+    c = cmd.UploadUnuploadedRecordsCommand(dbhandler)
+    uscheduler.add_job(Job('*/3 * * * *', c))
 
 
 
@@ -96,4 +97,4 @@ if __name__ == '__main__':
     uthread.start()
 
 
-    app.run(debug=True)
+    app.run(debug=False)

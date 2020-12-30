@@ -46,7 +46,7 @@ class DBHandler(object):
         with self.dbconn:
             c = self.dbconn.cursor()
             sql = '''SELECT * FROM measurements 
-                     WHERE uploaded == 0 ORDER BY uid ASC LIMIT ?'''
+                     WHERE uploaded == 0 ORDER BY uid DESC LIMIT ?'''
             c.execute(sql, (limit, ))
             rows = c.fetchall()
             return rows
