@@ -43,12 +43,11 @@ def index():
     return render_template('index2.html', form=form, name=name)
     
 
-@app.route('/report')
-def curve():
-    #return app.send_static_file('curve.html') 
+@app.route('/report/<datetime>')
+def report(datetime):
 
-    print('hello report')
-    return render_template('report.html', filename='power_curve_2020_0505.png')
+    filename = 'power_curve_2020_0505.png'
+    return render_template('report.html', filename=filename)
 
 
 @app.route('/test')
