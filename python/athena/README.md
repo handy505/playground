@@ -1,7 +1,7 @@
 # Operate 
 $ python3 -m venv env 
 
-$ source VENV/bin/activate
+$ source env/bin/activate
 (env) ... $ deactivate
 
 

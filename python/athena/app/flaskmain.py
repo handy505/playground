@@ -16,11 +16,16 @@ from machine import Machine
 import commands as cmd
 
 
-
 app = Flask(__name__)
 bootstrap = Bootstrap(app)
 
 app.config['SECRET_KEY'] = 'mysecret'
+
+
+
+@app.route('/', methods=['GET', 'POST'])
+def index():
+    return render_template('index.html')
 
 
 class NameForm(FlaskForm):
@@ -28,13 +33,8 @@ class NameForm(FlaskForm):
     submit = SubmitField('Submit')
 
 
-
-
-@app.route('/', methods=['GET', 'POST'])
-def index():
-    #return '<h1>Hello</h1>'
-    #return render_template('index.html')
-
+@app.route('/personal', methods=['GET', 'POST'])
+def personal():
     name = None
     form = NameForm()
     if form.validate_on_submit():
@@ -42,10 +42,9 @@ def index():
         form.name.data = ''
     return render_template('index2.html', form=form, name=name)
     
-
+    
 @app.route('/report/<datetime>')
 def report(datetime):
-
     filename = 'power_curve_2020_0505.png'
     return render_template('report.html', filename=filename)
 
@@ -54,7 +53,6 @@ def report(datetime):
 def test():
     return render_template('test.html')
 
-        
 
 @app.route('/user/<username>')
 def hello_user(username):
