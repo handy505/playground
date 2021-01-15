@@ -17,6 +17,8 @@ from dbhandler import DBHandler
 from machine import Machine
 import commands as cmd
 
+from corr import corr
+
 
 app = Flask(__name__)
 bootstrap = Bootstrap(app)
@@ -90,6 +92,14 @@ def api_datetime():
     s = '<h1>{}</h1>'.format(str(datetime.now()))
     return s
 
+
+@app.route('/api/corr/<atdatetime>')
+def api_corr(atdatetime):
+    path = '../data/demo_{}_{}.sqlite'.format(atdatetime[0:4], atdatetime[4:])
+    #result = corr('../data/demo_2020_0505.sqlite')
+    result = corr(path)
+    print(result)
+    return render_template('corr.html', records=result)
 
 def main():
     cscheduler = Scheduler()
