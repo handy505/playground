@@ -8,6 +8,8 @@ from flask_bootstrap import Bootstrap
 
 from datetime import datetime
 import threading
+import sqlite3
+import os
 
 
 from cronscheduler import Scheduler, Job
@@ -61,7 +63,25 @@ def hello_user(username):
 
 @app.route('/records')
 def get_records():
-    rows = dbhandler.read_unuploaded_rows(1000) 
+    dirpath = '../data/'
+    filenames = [filename for filename in os.listdir(dirpath)]
+    names = [os.path.splitext(filename)[0] for filename in filenames]
+    names = ['/record/{}'.format(name) for name in names]
+    names.sort()
+    return render_template('records2.html', records=names)
+
+
+@app.route('/record/<filename>')
+def get_record_by_filename(filename):
+    path = '../data/' + filename + '.sqlite'
+    conn = sqlite3.connect(path)
+    with conn:
+        c = conn.cursor()
+        sql = '''SELECT * 
+                 FROM inverter_minutely '''
+        c.execute(sql)
+        rows = c.fetchall()
+
     return render_template('records.html', records=rows)
 
 
@@ -71,12 +91,10 @@ def api_datetime():
     return s
 
 
-if __name__ == '__main__':
-
+def main():
     cscheduler = Scheduler()
     uscheduler = Scheduler()
     dbhandler  = DBHandler()
-
 
 
     machines = [Machine(id) for id in range(1,4)]
@@ -92,7 +110,6 @@ if __name__ == '__main__':
     uscheduler.add_job(Job('*/3 * * * *', c))
 
 
-
     cthread = threading.Thread(target=cscheduler.run)
     cthread.start()
 
@@ -100,4 +117,9 @@ if __name__ == '__main__':
     uthread.start()
 
 
-    app.run(debug=False)
+    app.run(debug=True)
+    
+
+if __name__ == '__main__':
+    main()
+

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Records</title>
+</head>
+<body>
+    <h1>Records</h1>
+    <table>
+    <thead>
+    <tr><th>Records</th></tr>
+    </thead>
+    <tbody>
+        <!--{% for rec in records%}
+        <tr><td><a href="{{ rec }}">{{ rec }}</a></p>
+        {% endfor %}
+        -->
+        {% for rec in records%}
+        <li><a href="{{ rec }}">{{ rec }}</a></li>
+        {% endfor %}
+    </tbody>
+    </table>
+
+
+
+</body>
+</html>
