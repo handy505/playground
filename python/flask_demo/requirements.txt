@@ -70,7 +70,7 @@ imagesize==1.2.0
 incremental==16.10.1
 interactive-markers==1.12.0
 itsdangerous==1.1.0
-Jinja2==2.10.1
+Jinja2==2.11.3
 joint-state-publisher==1.15.0
 joint-state-publisher-gui==1.15.0
 keyring==18.0.1
