@@ -21,7 +21,8 @@ def hexdump(src, length=16):
 
 def main():
     print('hello mmwawve')
-    ser1 = serial.Serial(port='COM1', baudrate=115200, timeout=0.8)
+    #ser1 = serial.Serial(port='COM1', baudrate=115200, timeout=0.8)
+    ser1 = serial.Serial(port='/dev/ttyACM0', baudrate=115200, timeout=0.8)
 
     lines = []
     with open('ods_default_config.cfg', 'r') as fd:
@@ -47,38 +48,102 @@ def main():
 
 
 
-    ser2 = serial.Serial(port='COM2', baudrate=921600, timeout=0.8)
+    #ser2 = serial.Serial(port='COM2', baudrate=921600, timeout=0.8)
+    ser2 = serial.Serial(port='/dev/ttyACM1', baudrate=921600, timeout=0.8)
     while True:
         rxpacket = ser2.read(ser2.in_waiting)
         if rxpacket:
             print(hexdump(rxpacket))
             print(len(rxpacket))
-            count_frame_header(rxpacket)
-        time.sleep(0.5)
+            print(type(rxpacket))
+            parse_rxpacket(rxpacket)
+        time.sleep(0.2)
 
-def count_frame_header(rxpacket):
+
+def parse_rxpacket(rxpacket):
     packetcount = 0
     try:
         q = deque(maxlen=40)
         for i, b in enumerate(rxpacket):
             q.append(b)
             if len(q) >= 40:
-                if  q[0] == 0x02 and q[1] == 0x01 and q[2] == 0x04 and q[3] == 0x03 and q[4] == 0x06 and q[5] == 0x05 and q[6] == 0x08 and q[7] == 0x07:
+                if (q[0] == 0x02 and 
+                    q[1] == 0x01 and 
+                    q[2] == 0x04 and 
+                    q[3] == 0x03 and 
+                    q[4] == 0x06 and 
+                    q[5] == 0x05 and 
+                    q[6] == 0x08 and 
+                    q[7] == 0x07):
                     
                     packetcount += 1
 
-                    header = q[0] << 56 | q[1] << 48 | q[2] << 40 | q[3] << 32 | q[4] << 24 | q[5] << 16 | q[6] << 8 | q[7]
-                    print('header: {}'.format(header))
+                    print('--------')
+                    header = (q[0] << 56 | 
+                              q[1] << 48 | 
+                              q[2] << 40 | 
+                              q[3] << 32 | 
+                              q[4] << 24 | 
+                              q[5] << 16 | 
+                              q[6] << 8  | 
+                              q[7])
+                    print('header: 0x{:016X}, i={}'.format(header, i))
                     
-                    version = q[9] << 24 | q[8] << 16 | q[11] << 8 | q[10]
-                    print('version: {:08X}'.format(version)) 
+                    version = (q[11] << 24 | 
+                               q[10] << 16 | 
+                               q[9]  << 8  | 
+                               q[8])
+                    print('version: 0x{:08X}'.format(version)) 
+
+                    totalPacketLen= (q[15] << 24 | 
+                                     q[14] << 16 | 
+                                     q[13] << 8  | 
+                                     q[12])
+                    print('totalPacketLen: {}({:08X})'.format(totalPacketLen, totalPacketLen)) 
+                    
+                    platform = (q[19] << 24 | 
+                                q[18] << 16 | 
+                                q[17] << 8  | 
+                                q[16])
+                    print('platform: {}({:08X})'.format(platform, platform)) 
+
+                    frameNumber = (q[23] << 24 | 
+                                   q[22] << 16 | 
+                                   q[21] << 8  | 
+                                   q[20])
+                    print('frameNumber: {}({:08X})'.format(frameNumber, frameNumber)) 
+
+                    timeCpuCycles = (q[27] << 24 | 
+                                     q[26] << 16 | 
+                                     q[25] << 8  | 
+                                     q[24])
+                    print('timeCpuCycles: {}({:08X})'.format(timeCpuCycles, timeCpuCycles)) 
+
+                    numDetectedObj = (q[31] << 24 | 
+                                      q[30] << 16 | 
+                                      q[29] << 8  | 
+                                      q[28])
+                    print('numDetectedObj: {}({:08X})'.format(numDetectedObj, numDetectedObj)) 
+
+                    numTLVs = (q[35] << 24 | 
+                               q[34] << 16 | 
+                               q[33] << 8  | 
+                               q[32])
+                    print('numTLVs: {}({:08X})'.format(numTLVs, numTLVs)) 
+
+                    subFrameIndex = (q[39] << 24 | 
+                                     q[38] << 16 | 
+                                     q[37] << 8  | 
+                                     q[36])
+                    print('subFrameIndex: {}({:08X})'.format(subFrameIndex, subFrameIndex)) 
 
 
-        print('debug: {}'.format(packetcount))
+        print('packetcount: {}'.format(packetcount))
     except IndexError as err:
         print(err)
 
     return len(rxpacket)
+
 
 if __name__ == '__main__':
     main()
