@@ -1,0 +1,5 @@
+[Desktop Entry]
+Name=runjava
+Exec=/home/pi/solarpi/bin/runjava.sh
+Type=Application
+

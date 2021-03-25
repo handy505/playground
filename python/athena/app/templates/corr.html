@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Correlation</title>
+</head>
+<body>
+    <h1>Corr</h1>
+    <table border=1>
+    <thead>
+    <tr><th>Records</th></tr>
+    </thead>
+    <tbody>
+        {% for key, value in records.items() %}
+        <tr><td>{{ key }}</td><td>{{ value }}</td></tr>
+        {% endfor %}
+    </tbody>
+    </table>
+
+</body>
+</html>
