@@ -36,7 +36,7 @@ def main():
         #print('[32mMaster: {}[m'.format(line))
         #txpacket = bytearray.fromhex(line)
         txpacket = bytearray(line, encoding='utf-8')
-        print(hexdump(txpacket))
+        #print(hexdump(txpacket))
 
         ser1.reset_output_buffer()
         ser1.reset_input_buffer()
@@ -44,7 +44,7 @@ def main():
         ser1.flush()
         time.sleep(0.1) # wait for machine processing 
         rxpacket = ser1.read(ser1.in_waiting)
-        print(hexdump(rxpacket))
+        #print(hexdump(rxpacket))
 
 
 
@@ -54,10 +54,11 @@ def main():
         rxpacket = ser2.read(ser2.in_waiting)
         if rxpacket:
             print(hexdump(rxpacket))
-            print(len(rxpacket))
-            print(type(rxpacket))
+            #print(len(rxpacket))
+            #print(type(rxpacket))
             parse_rxpacket(rxpacket)
-        time.sleep(0.2)
+            print('--------')
+        time.sleep(0.1)
 
 
 def parse_rxpacket(rxpacket):
