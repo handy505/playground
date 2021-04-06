@@ -87,6 +87,34 @@ void polling(void){
     int left = PS3.getAnalogHat(LeftHatY);
     int right = PS3.getAnalogHat(RightHatY);
 
+
+    if (PS3.getButtonClick(UP)){
+      Serial.print("\r\nUP");
+    }
+    if (PS3.getButtonClick(DOWN)){
+      Serial.print("\r\nDOWN");
+    }
+    if (PS3.getButtonClick(LEFT)){
+      Serial.print("\r\nLEFT");
+    }
+    if (PS3.getButtonClick(RIGHT)){
+      Serial.print("\r\nRIGHT");
+    }
+
+    if (PS3.getButtonClick(TRIANGLE)){
+      Serial.print("\r\nTRIANGLE");
+    }
+    if (PS3.getButtonClick(CROSS)){
+      Serial.print("\r\nCROSS");
+    }
+    if (PS3.getButtonClick(SQUARE)){
+      Serial.print("\r\nSQUARE");
+    }
+    if (PS3.getButtonClick(CIRCLE)){
+      Serial.print("\r\nCIRCLE");
+    }
+
+
     bool active = false;
     
     if (left < (127 - SENSITIVE)){
