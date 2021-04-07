@@ -150,9 +150,9 @@ void polling(void){
       analogWrite(ENA_PIN, leftpwm);
       active = true;
     }else if(PS3.getButtonPress(L1)){
-      left_forward();
-    }else if(PS3.getButtonPress(L2)){
       left_backward();
+    }else if(PS3.getButtonPress(L2)){
+      left_forward();
     }else{
       left_stop();
       if(leftpwm > 20)      leftpwm -= 3;
@@ -175,9 +175,9 @@ void polling(void){
       analogWrite(ENB_PIN, rightpwm); 
       active = true;
     }else if(PS3.getButtonPress(R1)){
-      right_forward();
-    }else if(PS3.getButtonPress(R2)){
       right_backward();
+    }else if(PS3.getButtonPress(R2)){
+      right_forward();
     }else{
       right_stop();
       if(rightpwm > 20)      rightpwm -= 3;
