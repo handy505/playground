@@ -88,55 +88,83 @@ void polling(void){
     int right = PS3.getAnalogHat(RightHatY);
 
 
-    if (PS3.getButtonClick(UP)){
+    /*if (PS3.getButtonPress(UP)){
       Serial.print("\r\nUP");
     }
-    if (PS3.getButtonClick(DOWN)){
+    if (PS3.getButtonPress(DOWN)){
       Serial.print("\r\nDOWN");
     }
-    if (PS3.getButtonClick(LEFT)){
+    if (PS3.getButtonPress(LEFT)){
       Serial.print("\r\nLEFT");
     }
-    if (PS3.getButtonClick(RIGHT)){
+    if (PS3.getButtonPress(RIGHT)){
       Serial.print("\r\nRIGHT");
     }
 
-    if (PS3.getButtonClick(TRIANGLE)){
+    if (PS3.getButtonPress(TRIANGLE)){
       Serial.print("\r\nTRIANGLE");
     }
-    if (PS3.getButtonClick(CROSS)){
+    if (PS3.getButtonPress(CROSS)){
       Serial.print("\r\nCROSS");
     }
-    if (PS3.getButtonClick(SQUARE)){
+    if (PS3.getButtonPress(SQUARE)){
       Serial.print("\r\nSQUARE");
     }
-    if (PS3.getButtonClick(CIRCLE)){
+    if (PS3.getButtonPress(CIRCLE)){
       Serial.print("\r\nCIRCLE");
-    }
+    }*/
+
+
+
 
 
     bool active = false;
     
-    if (left < (127 - SENSITIVE)){
-      // left forward
+    if (PS3.getButtonPress(UP) | (PS3.getButtonPress(TRIANGLE))){
+      Serial.print("\r\nUP");
       left_forward();
-      
-      lefttarget = calc_pwm(left);
-      if (leftpwm > lefttarget) leftpwm--;
-      else                      leftpwm++;
-      analogWrite(ENA_PIN, leftpwm);
-      active = true;
-      
-    }else if (left > (127 + SENSITIVE)){
-      // left backward
+      right_forward();
+      analogWrite(ENA_PIN, 128);
+      analogWrite(ENB_PIN, 128);
+      return;
+    }else if (PS3.getButtonPress(DOWN) | (PS3.getButtonPress(CROSS))){
+      Serial.print("\r\nDOWN");
       left_backward();
-      
+      right_backward();
+      analogWrite(ENA_PIN, 128);
+      analogWrite(ENB_PIN, 128);
+      return;
+    }else if (PS3.getButtonPress(LEFT) | (PS3.getButtonPress(SQUARE))){
+      Serial.print("\r\nLEFT");
+      left_stop();
+      right_forward();
+      analogWrite(ENA_PIN, 128);
+      analogWrite(ENB_PIN, 128);
+      return;
+    }else if (PS3.getButtonPress(RIGHT) | (PS3.getButtonPress(CIRCLE))){
+      Serial.print("\r\nRIGHT");
+      left_forward();
+      right_stop();
+      analogWrite(ENA_PIN, 128);
+      analogWrite(ENB_PIN, 128);
+      return;
+    }
+    
+    if (left < (127 - SENSITIVE)){
+      left_forward();
       lefttarget = calc_pwm(left);
       if (leftpwm > lefttarget) leftpwm--;
       else                      leftpwm++;
       analogWrite(ENA_PIN, leftpwm);
       active = true;
-      
+
+    }else if (left > (127 + SENSITIVE)){
+      left_backward();
+      lefttarget = calc_pwm(left);
+      if (leftpwm > lefttarget) leftpwm--;
+      else                      leftpwm++;
+      analogWrite(ENA_PIN, leftpwm);
+      active = true;
     }else{
       left_stop();
       if(leftpwm > 20)      leftpwm -= 3;
@@ -146,33 +174,25 @@ void polling(void){
     }
 
     if (right < (127 - SENSITIVE)){
-      // right forward
       right_forward();
-      
       righttarget = calc_pwm(right);
       if (rightpwm > righttarget) rightpwm--;
       else                        rightpwm++;
       analogWrite(ENB_PIN, rightpwm); 
       active = true;
-            
     }else if (right > (127 + SENSITIVE)){
-      // right backward
       right_backward();
-      
       righttarget = calc_pwm(right);
       if (rightpwm > righttarget) rightpwm--;
       else                        rightpwm++;
       analogWrite(ENB_PIN, rightpwm); 
       active = true;
-      
     }else{
       right_stop();
       if(rightpwm > 20)      rightpwm -= 3;
       else if(rightpwm > 0)  rightpwm -= 1;
       analogWrite(ENB_PIN, rightpwm);
-            
     }
-
 
     if (active){
       Serial.print(F("\r\n "));
@@ -205,7 +225,8 @@ void setup() {
   Serial.print(F("\r\nPS3 Bluetooth Library Started"));
 
   timebase = millis();
-  
+  PS3.setLedOff();
+  PS3.setLedOn(LED4);
 }
 
 //-----------------------------
