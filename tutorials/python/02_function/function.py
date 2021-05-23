@@ -11,6 +11,6 @@ if __name__ == "__main__":
 
 
 '''
-pi@raspberrypi:~/demo/python/lessons $ python3 02_function_call.py 
+handy@ubuntu:~/playground/tutorials/python/02_function$ python3 function.py
 result: 5
 '''

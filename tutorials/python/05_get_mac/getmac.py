@@ -7,10 +7,13 @@ from uuid import getnode
 if __name__ == "__main__":
 
     # hardware, mac address
+    mac = getnode()
+    mac = hex(mac)
+
     mac = hex(getnode())
     print('mac: {}'.format(mac))
 
+
 '''
-pi@raspberrypi:~/demo/python/lessons $ python3 05_get_mac.py 
-mac: 0xb827eb2bdf76
+mac: 0x1ede57df52d
 '''

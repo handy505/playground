@@ -7,9 +7,11 @@ import math
 def main():
 
     # perfermence
-    t1 = time.clock()
+    #t1 = time.clock()
+    t1 = time.perf_counter()
     ans = math.sqrt(2)
-    t2 = time.clock()
+    #t2 = time.clock()
+    t2 = time.perf_counter()
     print("sqrt(2) = {0}, elapse time: {1}".format(ans, t2-t1))
 
 if __name__ == "__main__":

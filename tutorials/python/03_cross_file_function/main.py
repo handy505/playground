@@ -9,6 +9,6 @@ if __name__ == "__main__":
     print('result: {}'.format(result))
 
 '''
-pi@raspberrypi:~/demo/python/lessons/03_cross_file_function_call $ python3 main.py 
+handy@ubuntu:~/playground/tutorials/python/03_cross_file_function$ python3 main.py
 result: 3
 '''

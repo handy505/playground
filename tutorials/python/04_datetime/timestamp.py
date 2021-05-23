@@ -16,7 +16,6 @@ if __name__ == "__main__":
                                                         timearr.tm_sec))
 
 '''
-pi@raspberrypi:~/demo/python/lessons $ python3 04_timestamp.py 
-now in seconds: 1595227382.8171701
-hour: 14, minute: 43, seconds: 2
+now in seconds: 1621751381.8278215
+hour: 23, minute: 29, seconds: 41
 '''
