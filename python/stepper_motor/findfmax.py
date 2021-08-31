@@ -1,11 +1,5 @@
 import random
 
-'''T = 5
-P = 1000
-'''
-
-
-#fstart = 100
 F_MAX = 2000
 F_MIN = 100
 
@@ -34,7 +28,6 @@ def predict(fmax, P):
         
         lp = pulses[-1]
         id = lp.id + 1
-
 
         if lp.id < 200:
             df = (fmax - lp.freq) / (200 - lp.id)
@@ -72,24 +65,16 @@ def find_fmax(T, P):
             fmin = f
             print('select freq from {} ~ {}'.format(f, fmax))
             freqs = range(f, fmax)
-            '''if not freqs:
-                continue
-                '''
             f = random.choice(freqs)
         elif tp < T:
             fmax = f
             print('select freq from {} ~ {}'.format(f, fmin))
             freqs = range(fmin, f)
-
-            '''if not freqs:
-                continue
-                '''
             f = random.choice(freqs)
 
         if (fmax - fmin) == 1:
             return f
             
-
     
 class StepperMotorPulseGenerator(object):
     def __init__(self, T, P):
@@ -110,27 +95,15 @@ def main(opts):
     T = opts.target_time
     P = opts.total_pulses
 
-
     g = StepperMotorPulseGenerator(T, P)
     fmax = g.find_fmax()
-
-
-
-
-
-    #fmax = find_fmax(T, P)
 
     print('--------------------------')
     print('find fmax: {}'.format(fmax))
 
 
-    #tp = predict(fmax, P)
     tp = g.predict(fmax, P)
     print('predict({}, {}) = {}'.format(fmax, P, tp))
-
-    #fmax += 1
-    #tp = predict(fmax, P)
-    #print('predict({}, {}) = {}'.format(fmax, P, tp))
 
     f = fmax + 1
     tp = g.predict(f, P)
@@ -156,6 +129,5 @@ if __name__ == '__main__':
     print(opts)
     print(args)
     main(opts)
-
 
 
