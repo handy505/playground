@@ -6,11 +6,11 @@ from scipy.integrate import odeint
 from pid import PIDController
 
 
-con = PIDController(1, 64, 0)
+con = PIDController(8, 8, 1)
 
 
 # animate plots?
-animate=False# True / False
+animate=True# True / False
 
 # define model
 def vehicle(v,t,u,load):
@@ -28,9 +28,10 @@ def vehicle(v,t,u,load):
     dv_dt = (1.0/(m+load)) * (Fp*u - 0.5*rho*Cd*A*v**2)
     return dv_dt
 
-tf = 60.0                 # final time for simulation
-#nsteps = 61               # number of time steps
-nsteps = 161               # number of time steps
+#tf = 60.0                 # final time for simulation
+tf = 160.0                 # final time for simulation
+nsteps = 61               # number of time steps
+#nsteps = 161               # number of time steps
 delta_t = tf/(nsteps-1)   # how long is each time step?
 ts = np.linspace(0,tf,nsteps) # linearly spaced time vector
 
@@ -59,19 +60,35 @@ for i in range(nsteps-1):
     prev_sp = sps[i]
     error = prev_sp - prev_v
     u = con.update(error)
-    step[i] = u
     #u = step[i]
     # clip inputs to -50% to 100%
     if u >= 100.0:
         u = 100.0
     if u <= -50.0:
         u = -50.0
+    step[i] = u
+
     v = odeint(vehicle,v0,[0,delta_t],args=(u,load))
     print(v)
     v0 = v[-1]   # take the last value
     vs[i+1] = v0 # store the velocity for plotting
     sps[i+1] = sp
 
+    # plot results
+    if animate:
+        plt.clf()
+        plt.subplot(2,1,1)
+        plt.plot(ts[0:i+1],vs[0:i+1],'b-',linewidth=3)
+        plt.plot(ts[0:i+1],sps[0:i+1],'k--',linewidth=2)
+        plt.ylabel('Velocity (m/s)')
+        plt.legend(['Velocity','Set Point'],loc=2)
+        plt.subplot(2,1,2)
+        plt.plot(ts[0:i+1],step[0:i+1],'r--',linewidth=3)
+        plt.ylabel('Gas Pedal')    
+        plt.legend(['Gas Pedal (%)'])
+        plt.xlabel('Time (sec)')
+        #plt.pause(0.1)    
+        plt.pause(0.3)    
 
 
 if not animate:

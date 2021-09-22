@@ -14,11 +14,14 @@ class PIDController(object):
         self.prev_error = 0.0
 
 
-    def update(self, error):
-        current_time = time.time()
+    def update(self, error, current_time=None):
+        if current_time is None:
+            current_time = time.time()
+
         dt = current_time - self.prev_time
 
         de = error - self.prev_error
+
         print('de: {}, dt: {}'.format(de, dt))
 
         self.pvalue = error
@@ -31,9 +34,6 @@ class PIDController(object):
 
         result = (self.Kp * self.pvalue) + (self.Ki * self.ivalue) + (self.Kd * self.dvalue)
         return result
-
-
-
 
 
 
