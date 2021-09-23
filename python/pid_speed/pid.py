@@ -6,9 +6,9 @@ class PIDController(object):
         self.Ki = Ki
         self.Kd = Kd 
 
-        self.pvalue = 0.0
+        #self.pvalue = 0.0
         self.ivalue = 0.0
-        self.dvalue = 0.0
+        #self.dvalue = 0.0
 
         self.prev_time = time.time()
         self.prev_error = 0.0
@@ -24,15 +24,27 @@ class PIDController(object):
 
         print('de: {}, dt: {}'.format(de, dt))
 
-        self.pvalue = error
+        pvalue = error
+        pterm = self.Kp * pvalue
+
+
         self.ivalue += error * dt
-        self.dvalue = de / dt
-        print('p: {}, i: {}, d: {}'.format(self.pvalue, self.ivalue, self.dvalue))
+        iterm = self.Ki * self.ivalue 
+
+
+
+
+        dvalue = de / dt
+        dterm = self.Kd * dvalue
+
+        #print('p: {}, i: {}, d: {}'.format(self.pvalue, self.ivalue, self.dvalue))
+        print('p: {}, i: {}, d: {}'.format(pterm, iterm, dterm))
 
         self.prev_time = current_time
         self.prev_error = error
 
-        result = (self.Kp * self.pvalue) + (self.Ki * self.ivalue) + (self.Kd * self.dvalue)
+        #result = (self.Kp * self.pvalue) + (self.Ki * self.ivalue) + (self.Kd * self.dvalue)
+        result = pterm + iterm + dterm
         return result
 
 
