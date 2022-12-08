@@ -19,7 +19,7 @@ catkin==0.8.8
 catkin-pkg==0.4.23
 catkin-pkg-modules==0.4.23
 cbor==1.0.0
-certifi==2019.11.28
+certifi==2022.12.7
 chardet==3.0.4
 Click==7.0
 colorama==0.4.3
